@@ -181,7 +181,7 @@ ipcMain.on('skip-break', () => {
 
 const createTray = () => {
   // Use the provided icon from the assets folder for the tray
-  const icon = nativeImage.createFromPath(path.join(__dirname, '../assets/icon.png'));
+  const icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon.ico'));
   if (process.platform === 'darwin' && icon.setTemplateImage) {
     icon.setTemplateImage(true);
   }
