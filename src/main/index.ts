@@ -36,6 +36,7 @@ let isPaused = false;
 let isStopped = false;
 let settingsWindow: BrowserWindow | null = null;
 let isIdle = false;
+let isQuitting = false;
 
 function updateTrayTooltip() {
   if (!tray) return;
@@ -242,7 +243,7 @@ function updateTrayMenu() {
         }
       : null,
     { type: 'separator' },
-    { label: 'Quit', click: () => app.quit() },
+    { label: 'Quit', click: () => { isQuitting = true; app.quit(); } },
   ].filter(Boolean);
   tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as any));
 }
@@ -364,10 +365,12 @@ ipcMain.on('get-settings', (event) => {
 });
 
 const createTray = () => {
-  // Use the provided icon from the assets folder for the tray
-  const icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon-mac.png'));
-  if (process.platform === 'darwin' && icon.setTemplateImage) {
-    icon.setTemplateImage(true);
+  let icon
+  if (process.platform === 'darwin') {
+    icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon-mac.png'));
+  if(icon.setTemplateImage) icon.setTemplateImage(true);
+  } else {
+    icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon.ico'));
   }
   tray = new Tray(icon);
   setInterval(updateTrayTooltip, 1000)
@@ -383,12 +386,21 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 400,
     height: 350,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
     },
+  });
+
+  // Hide window instead of closing (minimize to tray), unless quitting
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && process.platform !== 'darwin') {
+      event.preventDefault();
+      mainWindow.hide();
+    }
   });
 
   // and load the index.html of the app.
@@ -403,6 +415,7 @@ const createWindow = () => {
 // Add a menu bar item that shows the break countdown
 let breakMenuItem: Electron.MenuItem | null = null;
 function updateAppMenu() {
+  if(process.platform !== 'darwin') return
   const time = !isOnBreak ? `${String(Math.floor(workTimeLeft / 60)).padStart(2, '0')}:${(workTimeLeft % 60).toString().padStart(2, '0')}` : '--:--';
   breakMenuItem = new MenuItem({
     label: `Your break starts in ${time}`,
@@ -410,7 +423,6 @@ function updateAppMenu() {
   });
   const menu = Menu.buildFromTemplate([
     breakMenuItem,
-    // ... add other menu items here if needed
   ]);
   Menu.setApplicationMenu(menu);
 }
