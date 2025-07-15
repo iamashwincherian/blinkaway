@@ -23,7 +23,7 @@ function saveSettings(settings: { workDuration: number; breakDuration: number })
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings));
 }
 let userSettings = loadSettings();
-let WORK_DURATION = 10;
+let WORK_DURATION = userSettings.workDuration;
 let BREAK_DURATION = userSettings.breakDuration;
 let tray: Tray | null = null;
 let workTimer: NodeJS.Timeout | null = null;
