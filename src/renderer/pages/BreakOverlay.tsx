@@ -48,7 +48,7 @@ export default function BreakOverlay() {
   return (
     <div
       id="break-overlay"
-      className="fixed w-screen h-screen bg-[#A3DC9A] text-white flex flex-col items-center justify-center z-[9999] opacity-80 dark:opacity-100"
+      className="fixed w-screen h-screen bg-[#4A9782] text-white flex flex-col items-center justify-center z-[9999] opacity-80 dark:opacity-100"
     >
       <p className='text-4xl mb-4 font-bold'>{min}:{sec}</p>
       <hr className='my-2 w-96 border' />
