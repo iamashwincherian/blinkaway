@@ -32,4 +32,4 @@ This will launch the Electron app with hot-reloading enabled for rapid developme
 
 ---
 
-© 2024 Ashwin Cherian Joseph. Licensed under the MIT License. 
+© 2024 Ashwin Cherian Joseph. Licensed under the [AGPL-3.0 license.](https://github.com/iamashwincherian/blinkaway?tab=AGPL-3.0-1-ov-file#readme) 

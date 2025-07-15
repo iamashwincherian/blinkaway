@@ -367,10 +367,10 @@ ipcMain.on('get-settings', (event) => {
 const createTray = () => {
   let icon
   if (process.platform === 'darwin') {
-    icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon-mac.png'));
+    icon = nativeImage.createFromPath(path.join(app.getAppPath(), 'assets', 'icon-mono.png'));
   if(icon.setTemplateImage) icon.setTemplateImage(true);
   } else {
-    icon = nativeImage.createFromPath(path.join(process.cwd(), 'assets', 'icon.ico'));
+    icon = nativeImage.createFromPath(path.join(app.getAppPath(), 'assets', 'icon.ico'));
   }
   tray = new Tray(icon);
   setInterval(updateTrayTooltip, 1000)
