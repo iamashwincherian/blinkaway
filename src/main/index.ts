@@ -42,8 +42,11 @@ function updateTrayTooltip() {
   if (!tray) return;
   let timeLabel = '';
   if (isIdle) {
-    timeLabel = 'idle';
+    timeLabel = 'Idle';
     tray.setToolTip('Timer paused (idle)');
+  } else if (isPaused) {
+    timeLabel = 'Paused';
+    tray.setToolTip('Paused');
   } else if (!isOnBreak && !isStopped) {
     if (workTimeLeft >= 60) {
       timeLabel = `${Math.ceil(workTimeLeft / 60)}m`;
@@ -432,7 +435,7 @@ setInterval(updateAppMenu, 1000);
 // Idle detection logic
 setInterval(() => {
   const idleSeconds = powerMonitor.getSystemIdleTime();
-  if(isOnBreak || isStopped || isPaused) return
+  if(isOnBreak || (!isIdle && (isPaused || isStopped))) return
   if (idleSeconds >= 120 && idleSeconds < 300) {
     if (!isIdle) {
       isIdle = true;
