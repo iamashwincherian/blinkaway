@@ -79,7 +79,8 @@
   .swatches input { position: absolute; opacity: 0; }
   .swatches i { display: grid; place-items: center; height: 72px; border-radius: 10px; }
   .swatches i::after {
-    content: ''; width: 16px; height: 30px; border-radius: 8px; background: #ffce3a; transform: rotate(12deg);
+    content: ''; width: 16px; height: 30px; border-radius: 8px; transform: rotate(12deg);
+    background: radial-gradient(1.6px 2.5px at 37% 28%, #1d1b16 95%, #0000), radial-gradient(1.6px 2.5px at 66% 28%, #1d1b16 95%, #0000), #ffce3a;
   }
   .swatches input:checked + i { outline: 2px solid #ffce3a; outline-offset: 2px; }
   .swatches input:focus-visible + i { outline: 2px solid var(--text); outline-offset: 2px; }
@@ -102,7 +103,6 @@
     <button type="button" data-tab="wellness"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Wellness</button>
     <button type="button" data-tab="pause"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 9v6M14 9v6"/></svg>Smart pause</button>
     <button type="button" data-tab="looks"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.2.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1"/><circle cx="11" cy="7" r="1"/><circle cx="16" cy="8.5" r="1"/></svg>Appearance</button>
-    <button type="button" data-tab="auto"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Automations</button>
     <button type="button" data-tab="about"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>About</button>
   </nav>
   <div class="cta">
@@ -169,9 +169,6 @@
       <label><input type="radio" name="background" value="forest"><i style="background: linear-gradient(160deg, #07170f, #1d4d33 55%, #587a3d)"></i>Forest</label>
       <label><input type="radio" name="background" value="ember"><i style="background: linear-gradient(160deg, #1a0b0b, #6b1f2a 55%, #c2593f)"></i>Ember</label>
     </section>
-    <section style="margin-top: 12px">
-      <label class="stack"><span>Background image<small>Optional image path or URL, shown instead of the gradient</small></span><input type="text" name="bgImage" spellcheck="false"></label>
-    </section>
     <h2>Break screen</h2>
     <section>
       <label><span>Play sounds<small>A soft chime when a break starts and ends</small></span><input type="checkbox" name="sound"></label>
@@ -179,15 +176,6 @@
     </section>
   </div>
 
-  <div class="pane" data-pane="auto" hidden>
-    <h1>Automations</h1>
-    <p>Hook breaks into the rest of your setup.</p>
-    <h2>Commands</h2>
-    <section>
-      <label class="stack"><span>Run when a break starts<small id="cmdHint"></small></span><input type="text" name="onStart" spellcheck="false"></label>
-      <label class="stack"><span>Run when a break ends</span><input type="text" name="onEnd" spellcheck="false"></label>
-    </section>
-  </div>
 
   <div class="pane" data-pane="about" hidden>
     <div class="about">
@@ -213,9 +201,6 @@
   document.querySelectorAll(`[data-os~="${api.platform}"]`).forEach(el => el.dataset.os += ' all')
   document.querySelectorAll('[data-os]:not([data-os~="all"]) input').forEach(el => el.disabled = true)
   $('keys').textContent = $('keys2').textContent = mac ? '⌘⌥⇧B' : 'Ctrl+Alt+Shift+B'
-  $('cmdHint').textContent = mac
-    ? 'Shell command, e.g. shortcuts run "Pause Music" or osascript -e \'…\''
-    : 'Command, e.g. powershell -c "…" or a path to a .bat file'
   $('preview').onclick = () => api.send('action', { type: 'start' })
   $('previewLook').onclick = () => api.send('action', { type: 'preview' })
   api.about().then(a => { $('version').textContent = `Version ${a.version}`; $('file').textContent = a.file })

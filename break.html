@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src * data: file:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
 <title>Break</title>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; }
@@ -10,7 +10,7 @@
     display: grid; place-items: center; color: #f6f2e6; cursor: default; user-select: none;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
     background: var(--bg) center / cover no-repeat, #17150f;
-    opacity: 0; transition: opacity .9s ease;
+    opacity: 0; transition: opacity .4s ease;
   }
   body.in { opacity: 1; }
   main { position: relative; text-align: center; padding: 24px; max-width: 760px; }
@@ -21,15 +21,17 @@
     animation: breathe 8s ease-in-out infinite; pointer-events: none;
   }
   @keyframes breathe { 0%, 100% { transform: scale(.72); opacity: .55; } 50% { transform: scale(1.12); opacity: 1; } }
-  .buddy svg { position: relative; width: 168px; height: 168px; animation: float 4s ease-in-out infinite; }
-  .shadow { width: 76px; height: 12px; margin-top: 4px; border-radius: 50%; background: rgba(0,0,0,.45); animation: shadow 4s ease-in-out infinite; }
+  .buddy svg { position: relative; width: 168px; height: 168px; animation: float 2.4s ease-in-out infinite; }
+  .shadow { width: 76px; height: 12px; margin-top: 4px; border-radius: 50%; background: rgba(0,0,0,.45); animation: shadow 2.4s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-10px); } }
   @keyframes shadow { 50% { transform: scale(.8); opacity: .7; } }
   .lean { transform: rotate(12deg); transform-origin: 50px 50px; transition: transform .8s cubic-bezier(.3, 1.4, .5, 1); }
   .done .lean { transform: none; }
   .tag { font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #ffce3a; }
+  .guilt { margin: 10px 0 0; font-size: 15px; color: #ffce3a; opacity: .85; }
+  .done .guilt { display: none; }
   h1 { font-size: clamp(28px, 4.2vw, 46px); font-weight: 600; line-height: 1.2; margin: 16px 0 26px; text-wrap: balance; }
-  .time { font-size: clamp(64px, 9vw, 104px); font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .time { font-size: clamp(52px, 7vw, 80px); font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .bar { width: min(340px, 70vw); height: 4px; margin: 24px auto 36px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; }
   .bar i { display: block; height: 100%; background: #ffce3a; transition: width 1s linear; }
   button {
@@ -40,6 +42,9 @@
   button:disabled { cursor: default; opacity: .5; font-variant-numeric: tabular-nums; }
   button:focus-visible { outline: 2px solid #ffce3a; outline-offset: 2px; }
   kbd { font: inherit; opacity: .55; margin-left: 6px; }
+  .actions { display: flex; justify-content: center; gap: 10px; }
+  .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.5s ease-in-out infinite; }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
   .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
   .preview.done button { opacity: 1; }
 </style>
@@ -48,14 +53,19 @@
 <main>
   <div class="buddy">
     <div class="orb"></div>
-    <svg viewBox="0 0 100 100"><g class="lean"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse cx="44" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse cx="57" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g></svg>
+    <svg viewBox="0 0 100 100"><g class="lean"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse class="eye" cx="44" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse class="eye" cx="57" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g></svg>
     <div class="shadow"></div>
   </div>
   <div class="tag" id="tag"></div>
+  <p class="guilt" id="guilt" hidden></p>
   <h1 id="msg"></h1>
   <div class="time" id="time"></div>
   <div class="bar"><i id="bar"></i></div>
-  <button id="skip" hidden>Skip break<kbd>Esc</kbd></button>
+  <div class="actions" id="actions" hidden>
+    <button data-mins="1">+1 min</button>
+    <button data-mins="5">+5 min</button>
+    <button id="skip">Skip break<kbd>Esc</kbd></button>
+  </div>
 </main>
 <script>
   const q = new URLSearchParams(location.search)
@@ -69,14 +79,19 @@
     ember: 'linear-gradient(160deg, #1a0b0b, #6b1f2a 55%, #c2593f)',
     night: 'linear-gradient(160deg, #050507, #16161d)',
   }
-  document.body.style.setProperty('--bg', d.bgUrl
-    ? `linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.4)), url(${JSON.stringify(d.bgUrl)})`
-    : BG[d.background] || BG.honey)
+  document.body.style.setProperty('--bg', BG[d.background] || BG.honey)
 
   const $ = id => document.getElementById(id)
   $('tag').textContent = d.long ? 'Long break' : 'Eye break'
   $('msg').textContent = d.msg
-  $('skip').hidden = !d.allowSkip && !d.preview
+  $('guilt').textContent = d.guilt
+  $('guilt').hidden = !d.guilt
+  $('actions').hidden = !d.allowSkip && !d.preview
+  // Postpone buttons work from the first second; a preview only offers Close.
+  document.querySelectorAll('[data-mins]').forEach(b => {
+    b.hidden = d.preview
+    b.onclick = () => api.send('action', { type: 'snooze', mins: +b.dataset.mins })
+  })
   // Skip unlocks after 5 s so a break can't be dismissed by reflex. A preview closes right away.
   let lock = d.preview ? 0 : 5
   const trySkip = () => d.preview ? api.send('action', { type: 'close-preview' })
@@ -122,6 +137,7 @@
     const run = setInterval(() => { show(--t); if (!t) clearInterval(run) }, 1000)
   } else api.on('tick', show)
   requestAnimationFrame(() => document.body.classList.add('in'))
+  api.on('fade', () => document.body.classList.remove('in'))
   chime([783.99, 659.25])
 </script>
 </body>

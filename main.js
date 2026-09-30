@@ -1,15 +1,14 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, screen, powerMonitor, ipcMain, globalShortcut } = require('electron')
-const { execFile, exec, spawn } = require('child_process')
+const { execFile, spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { pathToFileURL } = require('url')
 
 const isMac = process.platform === 'darwin'
 const SHORTCUT = 'CommandOrControl+Alt+Shift+B'
 const DEFAULTS = {
-  workMin: 20, breakSec: 20, longEvery: 3, longMin: 5, headsUpSec: 15, allowSkip: true,
+  workMin: 25, breakSec: 60, longEvery: 3, longMin: 5, headsUpSec: 15, allowSkip: true,
   blinkMin: 10, postureMin: 30, idleResetMin: 5, pauseForMedia: true, pauseApps: '',
-  sound: true, background: 'honey', bgImage: '', showTimer: true, openAtLogin: false,
+  sound: true, background: 'honey', showTimer: true, openAtLogin: false,
   messages: [
     'Look at something at least 20 feet away.',
     'Close your eyes and take three slow breaths.',
@@ -17,7 +16,6 @@ const DEFAULTS = {
     'Drop your shoulders and unclench your jaw.',
     'Grab a glass of water.',
   ].join('\n'),
-  onStart: '', onEnd: '',
 }
 const file = path.join(app.getPath('userData'), 'settings.json')
 const firstRun = !fs.existsSync(file)
@@ -26,6 +24,7 @@ try { Object.assign(s, JSON.parse(fs.readFileSync(file, 'utf8'))) } catch {}
 
 let left = s.workMin * 60 // seconds of screen time until the next break
 let breakLeft = 0, breaks = 0, breakStart = 0
+let skipStreak = 0 // breaks skipped in a row; a finished break resets it
 let pausedUntil = 0 // ms timestamp, Infinity = until resumed
 let blocker = '' // app currently delaying breaks (video, call, fullscreen)
 let blinkLeft = s.blinkMin * 60, postureLeft = s.postureMin * 60
@@ -35,9 +34,15 @@ let overlays = []
 const preload = path.join(__dirname, 'preload.js')
 const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
 const lead = () => Math.max(0, s.headsUpSec)
+const guilt = () => !skipStreak ? ''
+  : skipStreak === 1 ? 'You skipped your last break. Buddy noticed.'
+  : skipStreak === 2 ? 'You skipped your last 2 breaks. Your eyes are keeping score.'
+  : `${skipStreak} breaks skipped in a row. Buddy is disappointed.`
+const skip = () => { skipStreak++; breakLeft ? endBreak(true) : (resetWork(), render()) }
 const send = (wins, ch, data) => wins.forEach(w => w && !w.isDestroyed() && w.webContents.send(ch, data))
 const kill = w => w && !w.isDestroyed() && w.destroy()
-const run = cmd => cmd && exec(cmd, { windowsHide: true }, () => {})
+// Fade the break screen out (break.html listens for 'fade'), then close it.
+const fadeOut = wins => { send(wins, 'fade'); setTimeout(() => wins.forEach(kill), 400) }
 
 // Tray icon drawn in code: Buddy, a leaning capsule with two oval eyes, 32px @2x.
 // Eyes are cut out (template) on macOS and painted `eye` elsewhere.
@@ -110,21 +115,19 @@ function startBreak(forceLong) {
     w.on('close', e => { // Cmd+W / Alt+F4 = skip
       if (!overlays.includes(w)) return
       e.preventDefault()
-      if (s.allowSkip && Date.now() - breakStart >= 5000) endBreak(true) // same 5 s lock as the Skip button
+      if (s.allowSkip && Date.now() - breakStart >= 5000) skip() // same 5 s lock as the Skip button
     })
     return w
   })
-  run(s.onStart)
   render()
 }
 
 function breakData(extra) {
   const msgs = s.messages.split('\n').map(m => m.trim()).filter(Boolean)
-  const bg = s.bgImage.trim()
   return JSON.stringify({
     sound: s.sound, allowSkip: s.allowSkip, background: s.background,
-    bgUrl: bg && (/^(https?|file):/.test(bg) ? bg : pathToFileURL(bg).href),
     msg: msgs[Math.floor(Math.random() * msgs.length)] || 'Look away from your screen.',
+    guilt: guilt(),
     ...extra,
   })
 }
@@ -161,14 +164,13 @@ function endBreak(skipped) {
   overlays = []
   breakLeft = 0
   breaks++
-  if (skipped) wins.forEach(kill)
-  else { send(wins, 'tick', 0); setTimeout(() => wins.forEach(kill), 1800) }
+  if (skipped) fadeOut(wins)
+  else { skipStreak = 0; send(wins, 'tick', 0); setTimeout(() => fadeOut(wins), 1800) }
   resetWork()
-  run(s.onEnd)
   render()
 }
 
-function toast(kind, width, height) {
+function toast(kind, width, height, msg = '') {
   const wa = screen.getPrimaryDisplay().workArea
   const w = new BrowserWindow({
     x: wa.x + wa.width - width - 8, y: wa.y + 8, width, height, frame: false, transparent: true,
@@ -177,18 +179,18 @@ function toast(kind, width, height) {
   })
   w.setAlwaysOnTop(true, 'screen-saver')
   if (isMac) w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true })
-  w.loadFile('toast.html', { query: { kind, left: String(left), allowSkip: s.allowSkip ? '1' : '' } })
+  w.loadFile('toast.html', { query: { kind, msg, left: String(left), allowSkip: s.allowSkip ? '1' : '' } })
   w.once('ready-to-show', () => w.showInactive()) // never steal focus from the user's work
   return w
 }
 
 function showHeadsUp() {
   if (headsUp && !headsUp.isDestroyed()) return
-  headsUp = toast('headsup', 376, 134)
+  headsUp = toast('headsup', 376, 134, guilt())
 }
 
-function nudge(kind) {
-  const w = toast(kind, 316, 104)
+function nudge(kind, msg) {
+  const w = toast(kind, 316, 104, msg)
   w.setIgnoreMouseEvents(true)
   setTimeout(() => kill(w), 6000)
 }
@@ -204,6 +206,7 @@ function status() {
   if (pausedUntil === Infinity) return 'Paused'
   if (pausedUntil) return `Paused until ${new Date(pausedUntil).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
   if (blocker && left <= lead() + 1) return `Break waiting for ${blocker}`
+  if (blocker) return `Next break in ${fmt(left)} · on hold during ${blocker}`
   return `Next break in ${fmt(left)}`
 }
 
@@ -219,7 +222,7 @@ function menu() {
     { type: 'separator' },
     { label: 'Take a Break Now', enabled: !breakLeft, accelerator: SHORTCUT, registerAccelerator: false, click: () => startBreak() },
     { label: 'Take a Long Break', enabled: !breakLeft, click: () => startBreak(true) },
-    { label: 'Skip Next Break', enabled: !breakLeft, click: () => { resetWork(); render() } },
+    { label: 'Skip Next Break', enabled: !breakLeft, click: skip },
     pausedUntil
       ? { label: 'Resume', click: () => { pausedUntil = 0; render() } }
       : { label: 'Pause', submenu: pauses.map(([m, label]) => ({ label, click: () => pause(m) })) },
@@ -254,8 +257,10 @@ function sh(cmd, args) {
 async function findBlocker() {
   if (s.pauseForMedia && isMac) {
     const out = await sh('pmset', ['-g', 'assertions'])
-    for (const [, name] of out.matchAll(/pid \d+\(([^)]+)\):.*(?:PreventUserIdleDisplaySleep|NoDisplaySleepAssertion)/g))
-      if (!KEEP_AWAKE.test(name)) return name
+    // Video and Zoom-style apps keep the display awake; browser and Electron calls (Meet, Slack, Teams)
+    // hold Chromium's "WebRTC has active PeerConnections" assertion instead.
+    for (const [, name, what] of out.matchAll(/pid \d+\(([^)]+)\):.*(PreventUserIdleDisplaySleep|NoDisplaySleepAssertion|named: "WebRTC)/g))
+      if (!KEEP_AWAKE.test(name)) return what.startsWith('named') ? `a call in ${name}` : name
   }
   if (s.pauseForMedia && winBusy) return 'a fullscreen app'
   const wanted = s.pauseApps.split(',').map(a => a.trim().toLowerCase().replace(/\.exe$/, '')).filter(Boolean)
@@ -264,6 +269,20 @@ async function findBlocker() {
   const running = new Set(out.split(/\r?\n/).map(l => l.split('","')[0].replace(/"/g, '').trim().toLowerCase().replace(/\.exe$/, '')))
   return wanted.find(a => running.has(a)) || ''
 }
+// Tell the user when breaks go on hold for a call/video and when they're back on.
+let clearPolls = 0
+async function watchBlocker() {
+  const next = await findBlocker()
+  if (next) clearPolls = 0
+  else if (blocker && ++clearPolls < 2) return // one missed poll isn't the end of a call
+  if (!!next !== !!blocker && !breakLeft && !pausedUntil) {
+    if (next) nudge('hold', `Waiting for ${next}. We won't interrupt you.`)
+    else if (left > lead() + 1) nudge('resume', `Next break in ${fmt(left)}.`) // else the heads-up says it
+  }
+  blocker = next
+  render()
+}
+
 function watchWindowsFullscreen() {
   // One long-lived PowerShell polling SHQueryUserNotificationState: 2 busy, 3 D3D fullscreen, 4 presentation.
   const script = `$ErrorActionPreference='Stop'
@@ -291,9 +310,14 @@ ipcMain.on('settings', (_, next) => {
 ipcMain.on('action', (_, { type, mins }) => {
   if (type === 'start') startBreak()
   if (type === 'preview') previewBreak()
-  if (type === 'close-preview') kill(previewWin)
-  if (type === 'skip') breakLeft ? s.allowSkip && endBreak(true) : resetWork()
-  if (type === 'snooze') { left += mins * 60; kill(headsUp) }
+  if (type === 'close-preview') fadeOut([previewWin])
+  if (type === 'skip' && (s.allowSkip || !breakLeft)) skip()
+  if (type === 'snooze' && breakLeft) { // postpone a running break; it doesn't count toward long breaks
+    if (!s.allowSkip) return
+    endBreak(true)
+    breaks--
+    left = mins * 60
+  } else if (type === 'snooze') { left += mins * 60; kill(headsUp) }
   render()
 })
 
@@ -308,7 +332,7 @@ else app.whenReady().then(() => {
   powerMonitor.on('resume', () => { resetWork(); render() }) // slept = rested
   if (process.platform === 'win32') watchWindowsFullscreen()
   setInterval(tick, 1000)
-  setInterval(async () => { blocker = await findBlocker() }, 5000)
+  setInterval(watchBlocker, 5000)
   render()
   if (firstRun) { fs.writeFileSync(file, JSON.stringify(s, null, 2)); openSettings() }
 })

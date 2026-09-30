@@ -55,7 +55,7 @@
         <div class="timer">
           <div class="ring" id="ring"></div><span class="num" id="num"></span>
         </div>
-        <div><b>Break coming up</b><small>Wrap up your thought — time to rest your eyes.</small></div>
+        <div><b>Break coming up</b><small id="sub">Wrap up your thought — time to rest your eyes.</small></div>
       </div>
       <div class="btns">
         <button class="primary" data-type="start">Start now</button>
@@ -63,6 +63,7 @@
         <button data-type="snooze" data-mins="5">+5 min</button>
         ${q.get('allowSkip') ? '<button data-type="skip">Skip</button>' : ''}
       </div>`
+    if (q.get('msg')) document.getElementById('sub').textContent = q.get('msg') // skipped-breaks nudge
     const total = +q.get('left')
     const show = t => {
       document.getElementById('num').textContent = t
@@ -82,7 +83,7 @@
         </svg>
         <div><b>Blink</b><small>Close your eyes slowly a few times. Screens make us forget.</small></div>
       </div>`
-  } else {
+  } else if (kind === 'posture') {
     card.innerHTML = `
       <div class="row">
         <svg viewBox="0 0 100 100">
@@ -90,6 +91,16 @@
         </svg>
         <div><b>Check your posture</b><small>Sit back, drop your shoulders, screen at eye level.</small></div>
       </div>`
+  } else { // hold / resume: Buddy looks away while a call runs, then back at you
+    const hold = kind === 'hold'
+    card.innerHTML = `
+      <div class="row">
+        <svg viewBox="0 0 100 100">
+          <g transform="rotate(${hold ? 12 : 0} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse cx="${hold ? 49 : 43.5}" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse cx="${hold ? 62 : 56.5}" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g>
+        </svg>
+        <div><b>${hold ? 'Breaks on hold' : 'Breaks are back on'}</b><small id="msg"></small></div>
+      </div>`
+    document.getElementById('msg').textContent = q.get('msg') // app names come from the OS: keep them text
   }
 </script>
 </body>
