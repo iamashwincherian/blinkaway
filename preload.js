@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld('api', {
   on: (channel, fn) => ipcRenderer.on(channel, (_, data) => fn(data)),
   settings: () => ipcRenderer.invoke('get-settings'),
   about: () => ipcRenderer.invoke('about'),
+  stats: () => ipcRenderer.invoke('stats'),
 })

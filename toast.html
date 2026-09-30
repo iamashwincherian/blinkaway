@@ -19,14 +19,8 @@
   @keyframes in { from { opacity: 0; transform: translateY(-10px) scale(.97); } }
   .row { display: flex; gap: 14px; align-items: center; }
   b { display: block; font-size: 14px; font-weight: 600; }
+  .num { font-variant-numeric: tabular-nums; color: #ffce3a; }
   small { display: block; font-size: 12px; color: #bdb6a3; margin-top: 2px; }
-  .ring {
-    grid-area: 1 / 1; width: 44px; height: 44px; border-radius: 50%;
-    background: conic-gradient(#ffce3a calc(var(--p) * 1%), rgba(255,255,255,.12) 0);
-    -webkit-mask: radial-gradient(circle, transparent 17px, #000 18px); mask: radial-gradient(circle, transparent 17px, #000 18px);
-  }
-  .timer { flex: none; display: grid; place-items: center; }
-  .num { grid-area: 1 / 1; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .btns { display: flex; gap: 6px; margin-top: 12px; }
   button {
     flex: 1; font: inherit; font-size: 12px; font-weight: 500; color: #f6f2e6; padding: 6px 0; border-radius: 8px; cursor: pointer;
@@ -49,58 +43,48 @@
   const card = document.getElementById('card')
   const kind = q.get('kind')
 
+  // The ghost with a given face and lean; faces match break.html.
+  const FACES = {
+    calm: '<g fill="#1d1b16"><ellipse cx="44" cy="34" rx="3.8" ry="6"/><ellipse cx="57" cy="34" rx="3.8" ry="6"/></g>',
+    tired: '<g fill="#1d1b16"><ellipse cx="44" cy="36" rx="3.8" ry="2.4"/><ellipse cx="57" cy="36" rx="3.8" ry="2.4"/></g>',
+    sad: '<g fill="#1d1b16"><ellipse cx="44" cy="40" rx="3.6" ry="5"/><ellipse cx="57" cy="40" rx="3.6" ry="5"/></g>',
+    happy: '<path d="M40 36 Q44 29 48 36 M53 36 Q57 29 61 36" fill="none" stroke="#1d1b16" stroke-width="3.5" stroke-linecap="round"/>',
+    blink: '<g fill="#1d1b16"><ellipse class="lid" cx="44" cy="34" rx="3.8" ry="6"/><ellipse class="lid" cx="57" cy="34" rx="3.8" ry="6"/></g>',
+    away: '<g fill="#1d1b16"><ellipse cx="49" cy="34" rx="3.8" ry="6"/><ellipse cx="62" cy="34" rx="3.8" ry="6"/></g>',
+  }
+  const LEAN = { calm: 12, happy: 6, tired: 17, sad: 22 }
+  const ghost = (face, lean = 12, cls = '') =>
+    `<svg viewBox="0 0 100 100"><g class="${cls}" transform="rotate(${lean} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>${FACES[face]}</g></svg>`
+  const row = (svg, title) => `<div class="row">${svg}<div><b>${title}</b><small id="sub"></small></div></div>`
+  const sub = text => { document.getElementById('sub').textContent = text } // messages may carry OS app names
+
   if (kind === 'headsup') {
-    card.innerHTML = `
-      <div class="row">
-        <div class="timer">
-          <div class="ring" id="ring"></div><span class="num" id="num"></span>
-        </div>
-        <div><b>Break coming up</b><small id="sub">Wrap up your thought — time to rest your eyes.</small></div>
-      </div>
+    const mood = FACES[q.get('mood')] ? q.get('mood') : 'calm'
+    card.innerHTML = row(ghost(mood, LEAN[mood]), 'Break in <span class="num" id="num"></span>') + `
       <div class="btns">
         <button class="primary" data-type="start">Start now</button>
         <button data-type="snooze" data-mins="1">+1 min</button>
         <button data-type="snooze" data-mins="5">+5 min</button>
         ${q.get('allowSkip') ? '<button data-type="skip">Skip</button>' : ''}
       </div>`
-    if (q.get('msg')) document.getElementById('sub').textContent = q.get('msg') // skipped-breaks nudge
-    const total = +q.get('left')
-    const show = t => {
-      document.getElementById('num').textContent = t
-      document.getElementById('ring').style.setProperty('--p', (t / total) * 100)
-    }
-    show(total)
+    sub(q.get('msg') || 'Wrap up your thought — time to rest your eyes.') // mood line: guilt or praise
+    const show = t => { document.getElementById('num').textContent = `${t}s` }
+    show(+q.get('left'))
     api.on('tick', show)
     card.onclick = e => {
       const b = e.target.closest('button')
       if (b) api.send('action', { type: b.dataset.type, mins: +b.dataset.mins })
     }
   } else if (kind === 'blink') {
-    card.innerHTML = `
-      <div class="row">
-        <svg viewBox="0 0 100 100">
-          <g transform="rotate(12 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><g fill="#1d1b16"><ellipse class="lid" cx="44" cy="34" rx="3.8" ry="6"/><ellipse class="lid" cx="57" cy="34" rx="3.8" ry="6"/></g></g>
-        </svg>
-        <div><b>Blink</b><small>Close your eyes slowly a few times. Screens make us forget.</small></div>
-      </div>`
+    card.innerHTML = row(ghost('blink'), 'Blink')
+    sub('Close your eyes slowly a few times. Screens make us forget.')
   } else if (kind === 'posture') {
-    card.innerHTML = `
-      <div class="row">
-        <svg viewBox="0 0 100 100">
-          <g class="spine"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse cx="43.5" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse cx="56.5" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g>
-        </svg>
-        <div><b>Check your posture</b><small>Sit back, drop your shoulders, screen at eye level.</small></div>
-      </div>`
-  } else { // hold / resume: Buddy looks away while a call runs, then back at you
+    card.innerHTML = row(ghost('calm', 0, 'spine'), 'Check your posture') // CSS animation drives the lean
+    sub('Sit back, drop your shoulders, screen at eye level.')
+  } else { // hold / resume: the ghost looks away while a call runs, then back at you
     const hold = kind === 'hold'
-    card.innerHTML = `
-      <div class="row">
-        <svg viewBox="0 0 100 100">
-          <g transform="rotate(${hold ? 12 : 0} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse cx="${hold ? 49 : 43.5}" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse cx="${hold ? 62 : 56.5}" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g>
-        </svg>
-        <div><b>${hold ? 'Breaks on hold' : 'Breaks are back on'}</b><small id="msg"></small></div>
-      </div>`
-    document.getElementById('msg').textContent = q.get('msg') // app names come from the OS: keep them text
+    card.innerHTML = row(hold ? ghost('away') : ghost('calm', 0), hold ? 'Breaks on hold' : 'Breaks are back on')
+    sub(q.get('msg'))
   }
 </script>
 </body>

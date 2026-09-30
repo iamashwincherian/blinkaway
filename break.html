@@ -14,22 +14,49 @@
   }
   body.in { opacity: 1; }
   main { position: relative; text-align: center; padding: 24px; max-width: 760px; }
-  .buddy { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 36px; }
+  .ghost { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; margin-bottom: 36px; }
   .orb {
     position: absolute; left: 50%; top: 50%; width: 560px; height: 560px; margin: -280px 0 0 -280px;
     border-radius: 50%; background: radial-gradient(circle, rgba(255,206,58,.16), transparent 68%);
-    animation: breathe 8s ease-in-out infinite; pointer-events: none;
+    animation: breathe 8s ease-in-out infinite; pointer-events: none; transition: opacity .8s;
   }
   @keyframes breathe { 0%, 100% { transform: scale(.72); opacity: .55; } 50% { transform: scale(1.12); opacity: 1; } }
-  .buddy svg { position: relative; width: 168px; height: 168px; animation: float 2.4s ease-in-out infinite; }
+  .ghost svg { position: relative; width: 168px; height: 168px; animation: float 2.4s ease-in-out infinite; }
   .shadow { width: 76px; height: 12px; margin-top: 4px; border-radius: 50%; background: rgba(0,0,0,.45); animation: shadow 2.4s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-10px); } }
   @keyframes shadow { 50% { transform: scale(.8); opacity: .7; } }
+  .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.5s ease-in-out infinite; }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
+  /* The ghost's mood: how far it leans, how it floats, which eyes it wears */
   .lean { transform: rotate(12deg); transform-origin: 50px 50px; transition: transform .8s cubic-bezier(.3, 1.4, .5, 1); }
-  .done .lean { transform: none; }
+  [data-mood=happy] .lean { transform: rotate(6deg); }
+  [data-mood=tired] .lean { transform: rotate(17deg); }
+  [data-mood=sad] .lean { transform: rotate(22deg); }
+  [data-mood=happy] .ghost svg, [data-mood=happy] .shadow { animation-duration: 1.5s; }
+  [data-mood=tired] .ghost svg, [data-mood=tired] .shadow, [data-mood=sad] .ghost svg, [data-mood=sad] .shadow { animation-duration: 3.6s; }
+  .face { display: none; }
+  [data-face=calm] .face-calm, [data-face=happy] .face-happy, [data-face=tired] .face-tired,
+  [data-face=sad] .face-sad, [data-face=closed] .face-closed { display: inline; }
+
+  /* Guided exercises (primary display only) */
+  .ex-follow .ghost { animation: wander 9s ease-in-out infinite; }
+  @keyframes wander {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-34vw, -6vh); }
+    40% { transform: translate(-10vw, -18vh); }
+    60% { transform: translate(34vw, -6vh); }
+    80% { transform: translate(10vw, -18vh); }
+  }
+  .ex-nearfar .ghost svg { animation: nearfar 8s ease-in-out infinite; }
+  @keyframes nearfar { 0%, 40%, 100% { transform: scale(1.45); } 50%, 90% { transform: scale(.5); } }
+  .ex-blink .eye { animation: slowblink 3.2s ease-in-out infinite; }
+  @keyframes slowblink { 0%, 35%, 85%, 100% { transform: scaleY(1); } 45%, 70% { transform: scaleY(.08); } }
+  .ex-palm .orb { opacity: .25; }
+  .cue { position: absolute; left: calc(50% + 150px); top: 45%; font-size: 15px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #ffce3a; }
+
   .tag { font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #ffce3a; }
   .guilt { margin: 10px 0 0; font-size: 15px; color: #ffce3a; opacity: .85; }
-  .done .guilt { display: none; }
   h1 { font-size: clamp(28px, 4.2vw, 46px); font-weight: 600; line-height: 1.2; margin: 16px 0 26px; text-wrap: balance; }
   .time { font-size: clamp(52px, 7vw, 80px); font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .bar { width: min(340px, 70vw); height: 4px; margin: 24px auto 36px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; }
@@ -43,18 +70,33 @@
   button:focus-visible { outline: 2px solid #ffce3a; outline-offset: 2px; }
   kbd { font: inherit; opacity: .55; margin-left: 6px; }
   .actions { display: flex; justify-content: center; gap: 10px; }
-  .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.5s ease-in-out infinite; }
-  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
-  .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
+
+  /* Done: the ghost straightens up, happy, and stops exercising */
+  .done .lean { transform: none; }
+  .done .ghost { animation: none; }
+  .done .ghost svg { animation: float 2.4s ease-in-out infinite; }
+  .done .cue, .done .guilt, .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
   .preview.done button { opacity: 1; }
 </style>
 </head>
 <body>
 <main>
-  <div class="buddy">
+  <div class="ghost">
     <div class="orb"></div>
-    <svg viewBox="0 0 100 100"><g class="lean"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse class="eye" cx="44" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse class="eye" cx="57" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g></svg>
+    <svg viewBox="0 0 100 100"><g class="lean">
+      <rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>
+      <g fill="#1d1b16">
+        <g class="face face-calm"><ellipse class="eye" cx="44" cy="34" rx="3.8" ry="6"/><ellipse class="eye" cx="57" cy="34" rx="3.8" ry="6"/></g>
+        <g class="face face-tired"><ellipse class="eye" cx="44" cy="36" rx="3.8" ry="2.4"/><ellipse class="eye" cx="57" cy="36" rx="3.8" ry="2.4"/></g>
+        <g class="face face-sad"><ellipse class="eye" cx="44" cy="40" rx="3.6" ry="5"/><ellipse class="eye" cx="57" cy="40" rx="3.6" ry="5"/></g>
+      </g>
+      <g fill="none" stroke="#1d1b16" stroke-linecap="round">
+        <path class="face face-happy" d="M40 36 Q44 29 48 36 M53 36 Q57 29 61 36" stroke-width="3.5"/>
+        <path class="face face-closed" d="M40 35 H48 M53 35 H61" stroke-width="4"/>
+      </g>
+    </g></svg>
     <div class="shadow"></div>
+    <div class="cue" id="cue" hidden></div>
   </div>
   <div class="tag" id="tag"></div>
   <p class="guilt" id="guilt" hidden></p>
@@ -79,13 +121,30 @@
     ember: 'linear-gradient(160deg, #1a0b0b, #6b1f2a 55%, #c2593f)',
     night: 'linear-gradient(160deg, #050507, #16161d)',
   }
+  // Guided eye exercises. Other displays just show the plain break.
+  const EX = {
+    follow: ['Follow the ghost', 'Keep your head still and follow the ghost with your eyes.'],
+    nearfar: ['Near & far', 'Hold up a finger. Focus on it when the ghost comes close, look far away when it shrinks.'],
+    blink: ['Blink along', 'Slow, full blinks. Close gently, hold a moment, open.'],
+    palm: ['Palming', 'Rub your palms warm, then cup them over your closed eyes. We’ll chime when it’s over.'],
+  }
+  const ex = primary && EX[d.exercise]
   document.body.style.setProperty('--bg', BG[d.background] || BG.honey)
+  document.body.dataset.mood = d.mood || 'calm'
+  document.body.dataset.face = d.exercise === 'palm' && primary ? 'closed' : d.mood || 'calm'
+  if (ex) document.body.classList.add(`ex-${d.exercise}`)
 
   const $ = id => document.getElementById(id)
-  $('tag').textContent = d.long ? 'Long break' : 'Eye break'
-  $('msg').textContent = d.msg
+  $('tag').textContent = d.planned || (ex ? ex[0] : d.long ? 'Long break' : 'Eye break')
+  $('msg').textContent = ex ? ex[1] : d.msg
   $('guilt').textContent = d.guilt
   $('guilt').hidden = !d.guilt
+  if (d.exercise === 'nearfar' && ex) { // cue in step with the 8 s grow/shrink animation
+    let near = true
+    $('cue').hidden = false
+    const cue = () => { $('cue').textContent = near ? 'Near' : 'Far'; near = !near }
+    cue(); setInterval(cue, 4000)
+  }
   $('actions').hidden = !d.allowSkip && !d.preview
   // Postpone buttons work from the first second; a preview only offers Close.
   document.querySelectorAll('[data-mins]').forEach(b => {
@@ -125,6 +184,7 @@
     $('bar').style.width = `${(t / d.total) * 100}%`
     if (t > 0) return
     document.body.classList.add('done')
+    document.body.dataset.face = 'happy'
     $('tag').textContent = 'Break complete'
     $('msg').textContent = 'Welcome back. Your eyes feel better already.'
     chime([523.25, 659.25, 783.99])

@@ -12,7 +12,7 @@ for (let y = 0; y < S; y++) {
       const q = Math.max(Math.abs(u - 512) - 232, 0) ** 5 + Math.max(Math.abs(v - 512) - 232, 0) ** 5
       if (Math.abs(u - 512) > 412 || Math.abs(v - 512) > 412 || q > 180 ** 5) continue // squircle, 100px margin
       let c = [29, 27, 22] // ink tile
-      // Buddy, in the logo's 100-unit space: a capsule leaning 12°, two oval eyes
+      // The ghost, in the logo's 100-unit space: a capsule leaning 12°, two oval eyes
       const dx = (u - 512) / 5.6, dy = (v - 512) / 5.6
       const bx = 50 + dx * cos - dy * sin, by = 50 + dx * sin + dy * cos
       if (Math.hypot(bx - 50, by - Math.min(67, Math.max(33, by))) < 19 && !oval(bx, by, 44) && !oval(bx, by, 57)) c = [255, 206, 58]

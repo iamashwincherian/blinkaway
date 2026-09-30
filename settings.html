@@ -9,11 +9,13 @@
     color-scheme: light dark; accent-color: #ffce3a;
     --bg: #faf7ee; --side: #f1ecdf; --card: #fff; --line: rgba(29,27,22,.1); --muted: #6b665a; --text: #1d1b16;
     --off: rgba(29,27,22,.16); --hover: rgba(29,27,22,.06);
+    --taken: #c99400; --skipped: #3a72c8; /* validated pair, see dataviz check */
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #16140f; --side: #1d1a14; --card: #211e17; --line: rgba(255,255,255,.09); --muted: #a39d8c; --text: #f6f2e6;
       --off: rgba(255,255,255,.18); --hover: rgba(255,255,255,.06);
+      --taken: #b5850c; --skipped: #5a8fe0;
     }
   }
   html, body { height: 100%; }
@@ -73,7 +75,7 @@
   kbd { font: inherit; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); }
   [data-os]:not([data-os~="all"]) { display: none; }
 
-  /* Break background picker: radio cards previewing each gradient with Buddy on it */
+  /* Break background picker: radio cards previewing each gradient with the ghost on it */
   .swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px; }
   .swatches label { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 0; border: 0; cursor: pointer; font-size: 12px; }
   .swatches input { position: absolute; opacity: 0; }
@@ -90,6 +92,38 @@
   .about h1 { font-size: 26px; margin: 14px 0 2px; letter-spacing: -.01em; }
   .about p { margin: 0; color: var(--muted); }
   .credit { margin-top: 20px; text-align: center; color: var(--muted); font-size: 12px; }
+
+  /* Fixed-time breaks editor */
+  .plan { display: grid; grid-template-columns: auto 90px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--line); }
+  .plan input[type=time] { font: inherit; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  .plan .x { font: inherit; width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+  .plan .x:hover { background: var(--hover); color: var(--text); }
+  .empty { padding: 10px 14px; color: var(--muted); }
+  .add { padding: 8px 14px 12px; border-top: 1px solid var(--line); }
+
+  /* Report */
+  .mood { display: flex; align-items: center; gap: 16px; }
+  .mood svg { width: 72px; height: 72px; flex: none; }
+  .mood h1 { font-size: 22px; margin: 0; }
+  .mood p { margin: 4px 0 0; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .tile b { display: block; font-size: 24px; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--muted); font-size: 12px; }
+  .chart { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: end; height: 150px; padding: 18px 16px 0; }
+  .col { display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; width: 28px; justify-self: center; height: 100%; gap: 2px; position: relative; }
+  .col:focus-visible { outline-offset: 4px; }
+  .col .n { text-align: center; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .col i { display: block; min-height: 0; }
+  .col i:first-of-type { border-radius: 4px 4px 0 0; }
+  .col i:last-of-type { border-radius: 0 0 1px 1px; }
+  .col i.s { background: var(--skipped); }
+  .col i.t { background: var(--taken); }
+  .col .tip { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 8px; border-radius: 6px; font-size: 11px; background: var(--text); color: var(--bg); opacity: 0; pointer-events: none; transition: opacity .12s; }
+  .col:hover .tip, .col:focus-visible .tip { opacity: 1; }
+  .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; padding: 6px 16px 12px; color: var(--muted); font-size: 11px; text-align: center; }
+  .legend { display: flex; gap: 16px; padding: 0 16px 14px; color: var(--muted); font-size: 12px; }
+  .legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
 </style>
 </head>
 <body>
@@ -99,6 +133,7 @@
     BlinkAway
   </div>
   <nav>
+    <button type="button" data-tab="report"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Report</button>
     <button type="button" data-tab="general"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>General</button>
     <button type="button" data-tab="wellness"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Wellness</button>
     <button type="button" data-tab="pause"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 9v6M14 9v6"/></svg>Smart pause</button>
@@ -113,7 +148,28 @@
 
 <main>
 <form>
-  <div class="pane" data-pane="general">
+  <div class="pane" data-pane="report" hidden>
+    <div class="mood">
+      <svg viewBox="0 0 100 100" id="moodFace"></svg>
+      <div><h1 id="moodTitle"></h1><p id="moodLine"></p></div>
+    </div>
+    <h2>Today</h2>
+    <div class="tiles">
+      <div class="tile"><b id="tTaken">0</b><span>Breaks taken</span></div>
+      <div class="tile"><b id="tSkipped">0</b><span>Skipped</span></div>
+      <div class="tile"><b id="tStreak">0</b><span>Current streak</span></div>
+      <div class="tile"><b id="tBest">0</b><span>Best streak</span></div>
+    </div>
+    <h2>Last 7 days</h2>
+    <section>
+      <div class="chart" id="chart"></div>
+      <div class="days" id="days"></div>
+      <div class="legend"><span style="--c: var(--taken)">Taken</span><span style="--c: var(--skipped)">Skipped</span></div>
+    </section>
+    <p class="credit" id="worst"></p>
+  </div>
+
+  <div class="pane" data-pane="general" hidden>
     <h1>General</h1>
     <p>How often you rest, and for how long.</p>
     <h2>Breaks</h2>
@@ -125,6 +181,12 @@
       <label><span>Heads-up before a break<small>Lets you start now, snooze or skip</small></span><span class="unit"><input type="number" name="headsUpSec" min="0"> sec</span></label>
       <label><span>Allow skipping breaks</span><input type="checkbox" name="allowSkip"></label>
     </section>
+    <h2>Fixed-time breaks</h2>
+    <section id="plans">
+      <div class="empty" id="noPlans">None yet. Add a lunch break or an afternoon walk.</div>
+      <div class="add"><button class="secondary" id="addPlan" type="button">Add a fixed-time break</button></div>
+    </section>
+    <p style="margin: 8px 4px 0; color: var(--muted); font-size: 11.5px">Waits for calls to end. Skipped if you're already away.</p>
     <h2>App</h2>
     <section>
       <label><span>Open at login</span><input type="checkbox" name="openAtLogin"></label>
@@ -148,8 +210,8 @@
     <h2>Hold breaks</h2>
     <section>
       <label><span>Reset the timer after being away for<small>Time away from the keyboard counts as a break</small></span><span class="unit"><input type="number" name="idleResetMin" min="0"> min</span></label>
-      <label data-os="darwin"><span>Hold breaks during video and calls<small>Waits while an app keeps your display awake</small></span><input type="checkbox" name="pauseForMedia"></label>
-      <label data-os="win32"><span>Hold breaks during fullscreen apps<small>Games, fullscreen video and presentations</small></span><input type="checkbox" name="pauseForMedia"></label>
+      <label data-os="darwin"><span>Hold breaks during calls and video<small>Any app using your microphone, browser calls, and video playback</small></span><input type="checkbox" name="pauseForMedia"></label>
+      <label data-os="win32"><span>Hold breaks during calls and fullscreen apps<small>Any app using your microphone, games, fullscreen video and presentations</small></span><input type="checkbox" name="pauseForMedia"></label>
       <label class="stack"><span>Also hold breaks while these apps are running<small>Comma-separated process names, e.g. obs, zoom.us, Teams</small></span><input type="text" name="pauseApps" spellcheck="false"></label>
     </section>
   </div>
@@ -171,8 +233,9 @@
     </section>
     <h2>Break screen</h2>
     <section>
+      <label><span>Guided eye exercises<small>A short guided exercise: follow the ghost, near and far, slow blinks, palming</small></span><input type="checkbox" name="exercises"></label>
       <label><span>Play sounds<small>A soft chime when a break starts and ends</small></span><input type="checkbox" name="sound"></label>
-      <label class="stack"><span>Break messages<small>One per line, picked at random</small></span><textarea name="messages"></textarea></label>
+      <label class="stack"><span>Break messages<small>One per line, picked at random for long breaks, other displays, or when exercises are off</small></span><textarea name="messages"></textarea></label>
     </section>
   </div>
 
@@ -190,7 +253,7 @@
       <div class="row"><span>Take a break anytime</span><kbd id="keys2"></kbd></div>
       <div class="row"><span>Settings file<small id="file"></small></span></div>
     </section>
-    <p class="credit">Buddy says: every 20 minutes, look 20 feet away for 20 seconds.</p>
+    <p class="credit">Every 20 minutes, look 20 feet away for 20 seconds.</p>
   </div>
 </form>
 </main>
@@ -211,7 +274,8 @@
     document.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== id)
   }
   tabs.forEach(b => b.onclick = () => show(b.dataset.tab))
-  show('general')
+  show(location.hash.slice(1) || 'general')
+  api.on('tab', show)
 
   const form = document.forms[0]
   const fields = [...form.elements].filter(el => el.name && !el.disabled)
@@ -220,15 +284,84 @@
       if (el.type === 'checkbox') el.checked = s[el.name]
       else if (el.type === 'radio') el.checked = el.value === s[el.name]
       else el.value = s[el.name]
+    s.planned.forEach(addPlan)
   })
-  form.onchange = () => {
+  const save = () => {
     const s = {}
     for (const el of fields) {
       if (el.type === 'radio' && !el.checked) continue
       s[el.name] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value
     }
+    s.planned = [...document.querySelectorAll('.plan')].map(r => ({
+      time: r.querySelector('[type=time]').value, min: +r.querySelector('[type=number]').value, label: r.querySelector('[type=text]').value,
+    }))
     api.send('settings', s)
   }
+  form.onchange = save
+
+  // Fixed-time breaks: one row per break, saved as a list (rows have no name, so they aren't form fields).
+  function addPlan(p = { time: '12:30', min: 30, label: '' }) {
+    const row = document.createElement('div')
+    row.className = 'plan'
+    row.innerHTML = `<input type="time" aria-label="Time" required>
+      <span class="unit"><input type="number" min="1" max="240" aria-label="Length in minutes"> min</span>
+      <input type="text" placeholder="Label, e.g. Lunch" maxlength="40" aria-label="Label">
+      <button class="x" type="button" aria-label="Remove">✕</button>`
+    const [time, min, label] = row.querySelectorAll('input')
+    time.value = p.time; min.value = p.min; label.value = p.label
+    row.querySelector('.x').onclick = () => { row.remove(); refreshPlans(); save() }
+    $('plans').insertBefore(row, $('plans').querySelector('.add'))
+    refreshPlans()
+  }
+  const refreshPlans = () => { $('noPlans').hidden = !!document.querySelector('.plan') }
+  $('addPlan').onclick = () => { addPlan(); save(); document.querySelector('.plan:last-of-type [type=time]')?.focus() }
+
+  // Report: the ghost's mood, today's numbers, a 7-day taken/skipped chart, and the hour you skip most.
+  const FACES = {
+    calm: '<g fill="#1d1b16"><ellipse cx="44" cy="34" rx="3.8" ry="6"/><ellipse cx="57" cy="34" rx="3.8" ry="6"/></g>',
+    tired: '<g fill="#1d1b16"><ellipse cx="44" cy="36" rx="3.8" ry="2.4"/><ellipse cx="57" cy="36" rx="3.8" ry="2.4"/></g>',
+    sad: '<g fill="#1d1b16"><ellipse cx="44" cy="40" rx="3.6" ry="5"/><ellipse cx="57" cy="40" rx="3.6" ry="5"/></g>',
+    happy: '<path d="M40 36 Q44 29 48 36 M53 36 Q57 29 61 36" fill="none" stroke="#1d1b16" stroke-width="3.5" stroke-linecap="round"/>',
+  }
+  const MOOD = {
+    calm: [12, 'Your eyes are doing fine', 'Keep taking your breaks.'],
+    happy: [6, 'Your eyes are thriving', ''],
+    tired: [17, 'Your eyes are getting tired', ''],
+    sad: [22, 'Your eyes need a break', ''],
+  }
+  const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  async function report() {
+    const st = await api.stats()
+    const [lean, title, fallback] = MOOD[st.mood]
+    $('moodFace').innerHTML = `<g transform="rotate(${lean} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>${FACES[st.mood]}</g>`
+    $('moodTitle').textContent = title
+    $('moodLine').textContent = st.line || fallback || 'Every break counts.'
+    const today = st.days[key(new Date())] || { taken: 0, skipped: 0 }
+    $('tTaken').textContent = today.taken; $('tSkipped').textContent = today.skipped
+    $('tStreak').textContent = st.streak; $('tBest').textContent = st.best
+
+    const week = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - 6 + i); return d })
+    const rows = week.map(d => st.days[key(d)] || { taken: 0, skipped: 0 })
+    const max = Math.max(1, ...rows.map(r => r.taken + r.skipped))
+    $('chart').innerHTML = ''; $('days').innerHTML = ''
+    week.forEach((d, i) => {
+      const { taken, skipped } = rows[i], day = d.toLocaleDateString([], { weekday: 'short' })
+      const col = document.createElement('div')
+      col.className = 'col'; col.tabIndex = 0
+      col.setAttribute('aria-label', `${day}: ${taken} taken, ${skipped} skipped`)
+      col.innerHTML = `<span class="tip">${taken} taken · ${skipped} skipped</span><span class="n">${taken + skipped || ''}</span>` +
+        (skipped ? `<i class="s" style="height:${skipped / max * 100}px"></i>` : '') +
+        (taken ? `<i class="t" style="height:${taken / max * 100}px"></i>` : '')
+      $('chart').append(col)
+      $('days').insertAdjacentHTML('beforeend', `<span>${i === 6 ? 'Today' : day}</span>`)
+    })
+    const worst = st.skipHours.indexOf(Math.max(...st.skipHours))
+    $('worst').textContent = st.skipHours[worst]
+      ? `You skip most around ${new Date(2000, 0, 1, worst).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} (${st.skipHours[worst]} skips so far).`
+      : 'No skipped breaks yet. Nice.'
+  }
+  report()
+  addEventListener('focus', report) // fresh numbers whenever the window comes back
 </script>
 </body>
 </html>
