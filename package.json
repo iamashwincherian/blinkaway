@@ -1,0 +1,35 @@
+{
+  "name": "blinkaway",
+  "productName": "BlinkAway",
+  "version": "1.0.0",
+  "description": "Smart break reminders for Mac and Windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.blinkaway.app",
+    "files": [
+      "*.js",
+      "*.html"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.healthcare-fitness",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.5.0",
+    "electron-builder": "^26.15.3"
+  },
+  "allowScripts": {
+    "electron@44.5.0": true
+  }
+}

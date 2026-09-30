@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
+<title>BlinkAway</title>
+<style>
+  :root {
+    color-scheme: light dark; accent-color: #7c5cff;
+    --bg: #f5f5f7; --card: #fff; --line: rgba(0,0,0,.08); --muted: #6e6e73; --text: #1d1d1f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16151c; --card: #211f2a; --line: rgba(255,255,255,.08); --muted: #9a98a6; --text: #f2f1f7; }
+  }
+  body {
+    margin: 0; padding: 24px 24px 32px; background: var(--bg); color: var(--text);
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  header svg { width: 40px; height: 40px; flex: none; }
+  h1 { font-size: 20px; margin: 0; }
+  header p { margin: 2px 0 0; color: var(--muted); }
+  h2 { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 4px 8px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  label { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border-top: 1px solid var(--line); }
+  label:first-child { border-top: 0; }
+  label > span small { display: block; color: var(--muted); font-size: 11.5px; }
+  label.stack { display: block; }
+  label.stack > span { display: block; margin-bottom: 6px; }
+  input[type=number] { width: 64px; }
+  input[type=text], textarea, select { font: inherit; }
+  input[type=text], textarea { width: 100%; box-sizing: border-box; }
+  input[type=text], input[type=number], textarea, select {
+    padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  }
+  input[type=checkbox] { width: 16px; height: 16px; }
+  textarea { resize: vertical; min-height: 96px; }
+  .unit { display: flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+  footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; color: var(--muted); }
+  button { font: inherit; font-weight: 500; color: #fff; background: #7c5cff; border: 0; border-radius: 8px; padding: 8px 16px; cursor: pointer; }
+  button:hover { background: #6b4ae8; }
+  kbd { font: inherit; padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); }
+  [data-os]:not([data-os~="all"]) { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <svg viewBox="0 0 40 40"><rect width="40" height="40" rx="10" fill="#7c5cff"/><path d="M7 20c4-7 8.5-10 13-10s9 3 13 10c-4 7-8.5 10-13 10S11 27 7 20z" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="20" cy="20" r="4.6" fill="#fff"/></svg>
+  <div><h1>BlinkAway</h1><p>Healthier screen habits, on autopilot.</p></div>
+</header>
+
+<form>
+  <h2>Breaks</h2>
+  <section>
+    <label><span>Take a break every</span><span class="unit"><input type="number" name="workMin" min="1"> min</span></label>
+    <label><span>Break length</span><span class="unit"><input type="number" name="breakSec" min="5"> sec</span></label>
+    <label><span>Long break after every<small>0 turns long breaks off</small></span><span class="unit"><input type="number" name="longEvery" min="0"> breaks</span></label>
+    <label><span>Long break length</span><span class="unit"><input type="number" name="longMin" min="1"> min</span></label>
+    <label><span>Heads-up before a break<small>Lets you start now, snooze or skip</small></span><span class="unit"><input type="number" name="headsUpSec" min="0"> sec</span></label>
+    <label><span>Allow skipping breaks</span><input type="checkbox" name="allowSkip"></label>
+  </section>
+
+  <h2>Wellness reminders</h2>
+  <section>
+    <label><span>Blink reminder every<small>0 turns it off</small></span><span class="unit"><input type="number" name="blinkMin" min="0"> min</span></label>
+    <label><span>Posture reminder every<small>0 turns it off</small></span><span class="unit"><input type="number" name="postureMin" min="0"> min</span></label>
+  </section>
+
+  <h2>Smart pause</h2>
+  <section>
+    <label><span>Reset the timer after being away for<small>Time away from the keyboard counts as a break</small></span><span class="unit"><input type="number" name="idleResetMin" min="0"> min</span></label>
+    <label data-os="darwin"><span>Hold breaks during video and calls<small>Waits while an app keeps your display awake</small></span><input type="checkbox" name="pauseForMedia"></label>
+    <label data-os="win32"><span>Hold breaks during fullscreen apps<small>Games, fullscreen video and presentations</small></span><input type="checkbox" name="pauseForMedia"></label>
+    <label class="stack"><span>Also hold breaks while these apps are running<small>Comma-separated process names, e.g. obs, zoom.us, Teams</small></span><input type="text" name="pauseApps" spellcheck="false"></label>
+  </section>
+
+  <h2>Break screen</h2>
+  <section>
+    <label><span>Play sounds</span><input type="checkbox" name="sound"></label>
+    <label><span>Background</span>
+      <select name="background">
+        <option value="dusk">Dusk</option><option value="ocean">Ocean</option><option value="forest">Forest</option>
+        <option value="ember">Ember</option><option value="night">Night</option>
+      </select>
+    </label>
+    <label class="stack"><span>Background image<small>Optional image path or URL, shown instead of the gradient</small></span><input type="text" name="bgImage" spellcheck="false"></label>
+    <label class="stack"><span>Break messages<small>One per line, picked at random</small></span><textarea name="messages"></textarea></label>
+  </section>
+
+  <h2>Automations</h2>
+  <section>
+    <label class="stack"><span>Run when a break starts<small id="cmdHint"></small></span><input type="text" name="onStart" spellcheck="false"></label>
+    <label class="stack"><span>Run when a break ends</span><input type="text" name="onEnd" spellcheck="false"></label>
+  </section>
+
+  <h2>General</h2>
+  <section>
+    <label data-os="darwin"><span>Show countdown in the menu bar</span><input type="checkbox" name="showTimer"></label>
+    <label><span>Open at login</span><input type="checkbox" name="openAtLogin"></label>
+  </section>
+</form>
+
+<footer>
+  <span>Break anytime: <kbd id="keys"></kbd></span>
+  <button id="preview" type="button">Take a break now</button>
+</footer>
+
+<script>
+  const mac = api.platform === 'darwin'
+  document.querySelectorAll(`[data-os~="${api.platform}"]`).forEach(el => el.dataset.os += ' all')
+  document.querySelectorAll('[data-os]:not([data-os~="all"]) input').forEach(el => el.disabled = true)
+  document.getElementById('keys').textContent = mac ? '⌘⌥⇧B' : 'Ctrl+Alt+Shift+B'
+  document.getElementById('cmdHint').textContent = mac
+    ? 'Shell command, e.g. shortcuts run "Pause Music" or osascript -e \'…\''
+    : 'Command, e.g. powershell -c "…" or a path to a .bat file'
+  document.getElementById('preview').onclick = () => api.send('action', { type: 'start' })
+
+  const form = document.forms[0]
+  const fields = [...form.elements].filter(el => el.name && !el.disabled)
+  api.settings().then(s => {
+    for (const el of fields) el.type === 'checkbox' ? (el.checked = s[el.name]) : (el.value = s[el.name])
+  })
+  form.onchange = () => {
+    const s = {}
+    for (const el of fields) s[el.name] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? +el.value : el.value
+    api.send('settings', s)
+  }
+</script>
+</body>
+</html>
