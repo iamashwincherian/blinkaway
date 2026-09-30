@@ -7,39 +7,39 @@
 <style>
   html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
   body {
-    padding: 8px; box-sizing: border-box; cursor: default; user-select: none; color: #fff;
+    padding: 8px; box-sizing: border-box; cursor: default; user-select: none; color: #f6f2e6;
     font: 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   }
   .card {
     height: 100%; box-sizing: border-box; padding: 14px 16px; border-radius: 16px;
-    background: rgba(24, 22, 34, .94); border: 1px solid rgba(255,255,255,.1);
+    background: rgba(29, 27, 22, .96); border: 1px solid rgba(255,255,255,.08);
     box-shadow: 0 4px 6px rgba(0,0,0,.25);
     animation: in .35s cubic-bezier(.2, .9, .3, 1.2);
   }
   @keyframes in { from { opacity: 0; transform: translateY(-10px) scale(.97); } }
   .row { display: flex; gap: 14px; align-items: center; }
   b { display: block; font-size: 14px; font-weight: 600; }
-  small { display: block; font-size: 12px; opacity: .65; margin-top: 2px; }
+  small { display: block; font-size: 12px; color: #bdb6a3; margin-top: 2px; }
   .ring {
     grid-area: 1 / 1; width: 44px; height: 44px; border-radius: 50%;
-    background: conic-gradient(#8b7bff calc(var(--p) * 1%), rgba(255,255,255,.12) 0);
+    background: conic-gradient(#ffce3a calc(var(--p) * 1%), rgba(255,255,255,.12) 0);
     -webkit-mask: radial-gradient(circle, transparent 17px, #000 18px); mask: radial-gradient(circle, transparent 17px, #000 18px);
   }
   .timer { flex: none; display: grid; place-items: center; }
   .num { grid-area: 1 / 1; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .btns { display: flex; gap: 6px; margin-top: 12px; }
   button {
-    flex: 1; font: inherit; font-size: 12px; font-weight: 500; color: #fff; padding: 6px 0; border-radius: 8px; cursor: pointer;
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.08);
+    flex: 1; font: inherit; font-size: 12px; font-weight: 500; color: #f6f2e6; padding: 6px 0; border-radius: 8px; cursor: pointer;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);
   }
-  button:hover { background: rgba(255,255,255,.2); }
-  button.primary { flex: 2; background: #7c5cff; border-color: #7c5cff; }
-  button.primary:hover { background: #6b4ae8; }
-  svg { flex: none; width: 44px; height: 44px; }
-  .lid { transform-origin: 22px 22px; animation: blink 2s ease-in-out infinite; }
-  @keyframes blink { 0%, 40%, 60%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.08); } }
-  .spine { transform-origin: 22px 38px; animation: straighten 2.4s ease-in-out infinite; }
-  @keyframes straighten { 0%, 100% { transform: rotate(14deg); } 45%, 75% { transform: rotate(0); } }
+  button:hover { background: rgba(255,255,255,.18); }
+  button.primary { flex: 2; color: #1d1b16; font-weight: 600; background: #ffce3a; border-color: #ffce3a; }
+  button.primary:hover { background: #f5be1f; }
+  svg { flex: none; width: 48px; height: 48px; }
+  .lid { transform-box: fill-box; transform-origin: center; animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%, 40%, 60%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.1); } }
+  .spine { transform-origin: 50px 86px; animation: straighten 2.4s ease-in-out infinite; }
+  @keyframes straighten { 0%, 100% { transform: rotate(12deg); } 45%, 75% { transform: rotate(0); } }
 </style>
 </head>
 <body>
@@ -77,16 +77,16 @@
   } else if (kind === 'blink') {
     card.innerHTML = `
       <div class="row">
-        <svg viewBox="0 0 44 44" fill="none" stroke="#b9adff" stroke-width="2.4" stroke-linecap="round">
-          <g class="lid"><path d="M5 22c5-8 11-12 17-12s12 4 17 12c-5 8-11 12-17 12S10 30 5 22z"/><circle cx="22" cy="22" r="5" fill="#b9adff"/></g>
+        <svg viewBox="0 0 100 100">
+          <g transform="rotate(12 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><g fill="#1d1b16"><ellipse class="lid" cx="44" cy="34" rx="3.8" ry="6"/><ellipse class="lid" cx="57" cy="34" rx="3.8" ry="6"/></g></g>
         </svg>
         <div><b>Blink</b><small>Close your eyes slowly a few times. Screens make us forget.</small></div>
       </div>`
   } else {
     card.innerHTML = `
       <div class="row">
-        <svg viewBox="0 0 44 44" fill="none" stroke="#b9adff" stroke-width="2.6" stroke-linecap="round">
-          <g class="spine"><circle cx="22" cy="9" r="4.5" fill="#b9adff" stroke="none"/><path d="M22 16v22M14 24l8-4 8 4"/></g>
+        <svg viewBox="0 0 100 100">
+          <g class="spine"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/><ellipse cx="43.5" cy="34" rx="3.8" ry="6" fill="#1d1b16"/><ellipse cx="56.5" cy="34" rx="3.8" ry="6" fill="#1d1b16"/></g>
         </svg>
         <div><b>Check your posture</b><small>Sit back, drop your shoulders, screen at eye level.</small></div>
       </div>`

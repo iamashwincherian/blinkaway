@@ -1,8 +1,8 @@
 // node build/make-icon.js — renders build/icon.png (1024², electron-builder turns it into .icns/.ico)
 const zlib = require('zlib'), fs = require('fs')
 const S = 1024, px = Buffer.alloc(S * (S * 4 + 1))
-const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t)
-const lens = (x, y, r, d) => Math.hypot(x - 512, y - 512 + d) < r && Math.hypot(x - 512, y - 512 - d) < r
+const cos = Math.cos(-12 * Math.PI / 180), sin = Math.sin(-12 * Math.PI / 180)
+const oval = (x, y, cx) => ((x - cx) / 3.8) ** 2 + ((y - 34) / 6) ** 2 < 1
 for (let y = 0; y < S; y++) {
   px[y * (S * 4 + 1)] = 0
   for (let x = 0; x < S; x++) {
@@ -11,10 +11,11 @@ for (let y = 0; y < S; y++) {
       const u = x + (i % 2 + 0.5) / 2, v = y + ((i >> 1) + 0.5) / 2
       const q = Math.max(Math.abs(u - 512) - 232, 0) ** 5 + Math.max(Math.abs(v - 512) - 232, 0) ** 5
       if (Math.abs(u - 512) > 412 || Math.abs(v - 512) > 412 || q > 180 ** 5) continue // squircle, 100px margin
-      let c = mix([124, 92, 255], [58, 36, 150], (u + v) / 2048) // violet gradient
-      const eye = lens(u, v, 470, 300) && !lens(u, v, 426, 300)
-      const pupil = Math.hypot(u - 512, v - 512) < 92
-      if (eye || pupil) c = [255, 255, 255]
+      let c = [29, 27, 22] // ink tile
+      // Buddy, in the logo's 100-unit space: a capsule leaning 12°, two oval eyes
+      const dx = (u - 512) / 5.6, dy = (v - 512) / 5.6
+      const bx = 50 + dx * cos - dy * sin, by = 50 + dx * sin + dy * cos
+      if (Math.hypot(bx - 50, by - Math.min(67, Math.max(33, by))) < 19 && !oval(bx, by, 44) && !oval(bx, by, 57)) c = [255, 206, 58]
       acc = acc.map((a, k) => a + (k < 3 ? c[k] : 255) / 4)
     }
     const o = y * (S * 4 + 1) + 1 + x * 4

@@ -9,7 +9,7 @@ const SHORTCUT = 'CommandOrControl+Alt+Shift+B'
 const DEFAULTS = {
   workMin: 20, breakSec: 20, longEvery: 3, longMin: 5, headsUpSec: 15, allowSkip: true,
   blinkMin: 10, postureMin: 30, idleResetMin: 5, pauseForMedia: true, pauseApps: '',
-  sound: true, background: 'dusk', bgImage: '', showTimer: true, openAtLogin: false,
+  sound: true, background: 'honey', bgImage: '', showTimer: true, openAtLogin: false,
   messages: [
     'Look at something at least 20 feet away.',
     'Close your eyes and take three slow breaths.',
@@ -29,7 +29,7 @@ let breakLeft = 0, breaks = 0, breakStart = 0
 let pausedUntil = 0 // ms timestamp, Infinity = until resumed
 let blocker = '' // app currently delaying breaks (video, call, fullscreen)
 let blinkLeft = s.blinkMin * 60, postureLeft = s.postureMin * 60
-let tray, headsUp, settingsWin, winWatcher
+let tray, headsUp, settingsWin, winWatcher, previewWin
 let overlays = []
 
 const preload = path.join(__dirname, 'preload.js')
@@ -39,23 +39,29 @@ const send = (wins, ch, data) => wins.forEach(w => w && !w.isDestroyed() && w.we
 const kill = w => w && !w.isDestroyed() && w.destroy()
 const run = cmd => cmd && exec(cmd, { windowsHide: true }, () => {})
 
-// Tray icon drawn in code: an almond eye outline with a pupil, 32px @2x.
-function eyeIcon(rgb) {
+// Tray icon drawn in code: Buddy, a leaning capsule with two oval eyes, 32px @2x.
+// Eyes are cut out (template) on macOS and painted `eye` elsewhere.
+function buddyIcon(body, eye) {
   const S = 32, buf = Buffer.alloc(S * S * 4)
-  const lens = (x, y, r) => Math.hypot(x - 16, y - 3) < r && Math.hypot(x - 16, y - 29) < r
+  const cos = Math.cos(-12 * Math.PI / 180), sin = Math.sin(-12 * Math.PI / 180)
+  const oval = (x, y, cx) => ((x - cx) / 5) ** 2 + ((y - 35) / 7.5) ** 2 < 1
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    let a = 0
+    let b = 0, e = 0
     for (let i = 0; i < 16; i++) {
-      const px = x + (i % 4 + 0.5) / 4, py = y + ((i >> 2) + 0.5) / 4
-      if ((lens(px, py, 20) && !lens(px, py, 17.6)) || Math.hypot(px - 16, py - 16) < 4.5) a++
+      // sample in the logo's 100-unit space, un-rotated around its centre
+      const dx = (x + (i % 4 + 0.5) / 4) * 100 / S - 50, dy = (y + ((i >> 2) + 0.5) / 4) * 100 / S - 50
+      const u = 50 + dx * cos - dy * sin, v = 50 + dx * sin + dy * cos
+      if (Math.hypot(u - 50, v - Math.min(65, Math.max(35, v))) >= 21) continue
+      if (oval(u, v, 43) || oval(u, v, 58)) e++
+      else b++
     }
-    a /= 16
-    const o = (y * S + x) * 4 // BGRA, premultiplied
-    buf[o] = rgb[2] * a; buf[o + 1] = rgb[1] * a; buf[o + 2] = rgb[0] * a; buf[o + 3] = 255 * a
+    const o = (y * S + x) * 4, rgb = [0, 1, 2].map(c => (body[c] * b + (eye ? eye[c] * e : 0)) / 16)
+    const a = (b + (eye ? e : 0)) / 16 // BGRA, premultiplied
+    buf[o] = rgb[2]; buf[o + 1] = rgb[1]; buf[o + 2] = rgb[0]; buf[o + 3] = 255 * a
   }
   return nativeImage.createFromBitmap(buf, { width: S, height: S, scaleFactor: 2 })
 }
-const icon = eyeIcon(isMac ? [0, 0, 0] : [124, 92, 255])
+const icon = isMac ? buddyIcon([0, 0, 0]) : buddyIcon([255, 206, 58], [29, 27, 22])
 if (isMac) icon.setTemplateImage(true)
 
 function tick() {
@@ -92,35 +98,15 @@ function resetWork() {
 
 function startBreak(forceLong) {
   kill(headsUp)
+  kill(previewWin)
   if (breakLeft) return
   const long = forceLong || (s.longEvery > 0 && (breaks + 1) % s.longEvery === 0)
   breakLeft = long ? s.longMin * 60 : s.breakSec
   breakStart = Date.now()
-  const msgs = s.messages.split('\n').map(m => m.trim()).filter(Boolean)
-  const bg = s.bgImage.trim()
-  const data = JSON.stringify({
-    long, total: breakLeft, sound: s.sound, allowSkip: s.allowSkip, background: s.background,
-    bgUrl: bg && (/^(https?|file):/.test(bg) ? bg : pathToFileURL(bg).href),
-    msg: msgs[Math.floor(Math.random() * msgs.length)] || 'Look away from your screen.',
-  })
+  const data = breakData({ long, total: breakLeft })
   const primaryId = screen.getPrimaryDisplay().id
   overlays = screen.getAllDisplays().map(d => {
-    const primary = d.id === primaryId
-    const w = new BrowserWindow({
-      ...d.bounds, frame: false, transparent: true, show: false, hasShadow: false, skipTaskbar: true,
-      resizable: false, movable: false, minimizable: false, maximizable: false, enableLargerThanScreen: true,
-      acceptFirstMouse: true, alwaysOnTop: true, webPreferences: { preload },
-    })
-    w.setBounds(d.bounds) // Windows mis-sizes windows on mixed-DPI monitors until re-set
-    w.setAlwaysOnTop(true, 'screen-saver')
-    if (isMac) w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true })
-    w.loadFile('break.html', { query: { d: data, primary: primary ? '1' : '' } })
-    w.once('ready-to-show', () => {
-      w.show()
-      if (!primary) return
-      if (isMac) app.focus({ steal: true })
-      w.focus()
-    })
+    const w = overlay(d, data, d.id === primaryId)
     w.on('close', e => { // Cmd+W / Alt+F4 = skip
       if (!overlays.includes(w)) return
       e.preventDefault()
@@ -130,6 +116,43 @@ function startBreak(forceLong) {
   })
   run(s.onStart)
   render()
+}
+
+function breakData(extra) {
+  const msgs = s.messages.split('\n').map(m => m.trim()).filter(Boolean)
+  const bg = s.bgImage.trim()
+  return JSON.stringify({
+    sound: s.sound, allowSkip: s.allowSkip, background: s.background,
+    bgUrl: bg && (/^(https?|file):/.test(bg) ? bg : pathToFileURL(bg).href),
+    msg: msgs[Math.floor(Math.random() * msgs.length)] || 'Look away from your screen.',
+    ...extra,
+  })
+}
+
+function overlay(display, data, primary) {
+  const w = new BrowserWindow({
+    ...display.bounds, frame: false, transparent: true, show: false, hasShadow: false, skipTaskbar: true,
+    resizable: false, movable: false, minimizable: false, maximizable: false, enableLargerThanScreen: true,
+    acceptFirstMouse: true, alwaysOnTop: true, webPreferences: { preload },
+  })
+  w.setBounds(display.bounds) // Windows mis-sizes windows on mixed-DPI monitors until re-set
+  w.setAlwaysOnTop(true, 'screen-saver')
+  if (isMac) w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true })
+  w.loadFile('break.html', { query: { d: data, primary: primary ? '1' : '' } })
+  w.once('ready-to-show', () => {
+    w.show()
+    if (!primary) return
+    if (isMac) app.focus({ steal: true })
+    w.focus()
+  })
+  return w
+}
+
+// Break screen on the primary display only; counts down on its own and touches no timers.
+function previewBreak() {
+  if (breakLeft) return
+  kill(previewWin)
+  previewWin = overlay(screen.getPrimaryDisplay(), breakData({ preview: true, total: s.breakSec }), true)
 }
 
 function endBreak(skipped) {
@@ -209,7 +232,7 @@ function menu() {
 function openSettings() {
   if (settingsWin) return settingsWin.show(), settingsWin.focus()
   settingsWin = new BrowserWindow({
-    width: 560, height: 780, minWidth: 460, show: false, title: 'BlinkAway',
+    width: 780, height: 580, minWidth: 660, minHeight: 440, show: false, title: 'BlinkAway',
     icon, backgroundColor: '#00000000', webPreferences: { preload },
   })
   settingsWin.removeMenu()
@@ -252,6 +275,7 @@ while ($true) { $s = 0; [void][W.N]::SHQueryUserNotificationState([ref]$s); [Con
 }
 
 ipcMain.handle('get-settings', () => s)
+ipcMain.handle('about', () => ({ version: app.getVersion(), file }))
 ipcMain.on('settings', (_, next) => {
   for (const k in DEFAULTS) if (typeof next[k] === typeof DEFAULTS[k]) s[k] = next[k]
   s.workMin = Math.max(1, s.workMin || 0)
@@ -266,6 +290,8 @@ ipcMain.on('settings', (_, next) => {
 })
 ipcMain.on('action', (_, { type, mins }) => {
   if (type === 'start') startBreak()
+  if (type === 'preview') previewBreak()
+  if (type === 'close-preview') kill(previewWin)
   if (type === 'skip') breakLeft ? s.allowSkip && endBreak(true) : resetWork()
   if (type === 'snooze') { left += mins * 60; kill(headsUp) }
   render()
