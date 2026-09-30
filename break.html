@@ -29,7 +29,8 @@
     font: inherit; font-size: 14px; color: #fff; padding: 9px 20px; border-radius: 999px; cursor: pointer;
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); transition: background .2s;
   }
-  button:hover { background: rgba(255,255,255,.22); }
+  button:hover:enabled { background: rgba(255,255,255,.22); }
+  button:disabled { cursor: default; opacity: .5; font-variant-numeric: tabular-nums; }
   button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   kbd { font: inherit; opacity: .55; margin-left: 6px; }
   .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
@@ -63,8 +64,17 @@
   $('tag').textContent = d.long ? 'Long break' : 'Eye break'
   $('msg').textContent = d.msg
   $('skip').hidden = !d.allowSkip
-  $('skip').onclick = () => api.send('action', { type: 'skip' })
-  addEventListener('keydown', e => e.key === 'Escape' && d.allowSkip && api.send('action', { type: 'skip' }))
+  // Skip unlocks after 5 s so a break can't be dismissed by reflex.
+  let lock = 5
+  const trySkip = () => d.allowSkip && !lock && api.send('action', { type: 'skip' })
+  const label = () => {
+    $('skip').disabled = lock > 0
+    $('skip').innerHTML = lock ? `Skip break in ${lock}` : 'Skip break<kbd>Esc</kbd>'
+  }
+  label()
+  const unlock = setInterval(() => { if (--lock === 0) clearInterval(unlock); label() }, 1000)
+  $('skip').onclick = trySkip
+  addEventListener('keydown', e => e.key === 'Escape' && trySkip())
 
   function chime(notes) {
     if (!d.sound || !primary) return

@@ -25,7 +25,7 @@ const s = { ...DEFAULTS }
 try { Object.assign(s, JSON.parse(fs.readFileSync(file, 'utf8'))) } catch {}
 
 let left = s.workMin * 60 // seconds of screen time until the next break
-let breakLeft = 0, breaks = 0
+let breakLeft = 0, breaks = 0, breakStart = 0
 let pausedUntil = 0 // ms timestamp, Infinity = until resumed
 let blocker = '' // app currently delaying breaks (video, call, fullscreen)
 let blinkLeft = s.blinkMin * 60, postureLeft = s.postureMin * 60
@@ -95,6 +95,7 @@ function startBreak(forceLong) {
   if (breakLeft) return
   const long = forceLong || (s.longEvery > 0 && (breaks + 1) % s.longEvery === 0)
   breakLeft = long ? s.longMin * 60 : s.breakSec
+  breakStart = Date.now()
   const msgs = s.messages.split('\n').map(m => m.trim()).filter(Boolean)
   const bg = s.bgImage.trim()
   const data = JSON.stringify({
@@ -123,7 +124,7 @@ function startBreak(forceLong) {
     w.on('close', e => { // Cmd+W / Alt+F4 = skip
       if (!overlays.includes(w)) return
       e.preventDefault()
-      if (s.allowSkip) endBreak(true)
+      if (s.allowSkip && Date.now() - breakStart >= 5000) endBreak(true) // same 5 s lock as the Skip button
     })
     return w
   })
