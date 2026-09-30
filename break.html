@@ -25,8 +25,8 @@
   .shadow { width: 76px; height: 12px; margin-top: 4px; border-radius: 50%; background: rgba(0,0,0,.45); animation: shadow 2.4s ease-in-out infinite; }
   @keyframes float { 50% { transform: translateY(-10px); } }
   @keyframes shadow { 50% { transform: scale(.8); opacity: .7; } }
-  .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.5s ease-in-out infinite; }
-  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  .eye { transform-box: fill-box; transform-origin: center; animation: blink 2.8s ease-in-out infinite; }
+  @keyframes blink { 0%, 88%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.1); } }
 
   /* The ghost's mood: how far it leans, how it floats, which eyes it wears */
   .lean { transform: rotate(12deg); transform-origin: 50px 50px; transition: transform .8s cubic-bezier(.3, 1.4, .5, 1); }
@@ -48,17 +48,14 @@
     60% { transform: translate(34vw, -6vh); }
     80% { transform: translate(10vw, -18vh); }
   }
-  .ex-nearfar .ghost svg { animation: nearfar 8s ease-in-out infinite; }
-  @keyframes nearfar { 0%, 40%, 100% { transform: scale(1.45); } 50%, 90% { transform: scale(.5); } }
   .ex-blink .eye { animation: slowblink 3.2s ease-in-out infinite; }
   @keyframes slowblink { 0%, 35%, 85%, 100% { transform: scaleY(1); } 45%, 70% { transform: scaleY(.08); } }
   .ex-palm .orb { opacity: .25; }
-  .cue { position: absolute; left: calc(50% + 150px); top: 45%; font-size: 15px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #ffce3a; }
 
   .tag { font-size: 13px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #ffce3a; }
   .guilt { margin: 10px 0 0; font-size: 15px; color: #ffce3a; opacity: .85; }
   h1 { font-size: clamp(28px, 4.2vw, 46px); font-weight: 600; line-height: 1.2; margin: 16px 0 26px; text-wrap: balance; }
-  .time { font-size: clamp(52px, 7vw, 80px); font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .time { font-size: clamp(44px, 5.5vw, 64px); font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .bar { width: min(340px, 70vw); height: 4px; margin: 24px auto 36px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; }
   .bar i { display: block; height: 100%; background: #ffce3a; transition: width 1s linear; }
   button {
@@ -70,12 +67,14 @@
   button:focus-visible { outline: 2px solid #ffce3a; outline-offset: 2px; }
   kbd { font: inherit; opacity: .55; margin-left: 6px; }
   .actions { display: flex; justify-content: center; gap: 10px; }
+  .lock { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 8px 16px; }
+  .lock svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
   /* Done: the ghost straightens up, happy, and stops exercising */
   .done .lean { transform: none; }
   .done .ghost { animation: none; }
   .done .ghost svg { animation: float 2.4s ease-in-out infinite; }
-  .done .cue, .done .guilt, .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
+  .done .guilt, .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
   .preview.done button { opacity: 1; }
 </style>
 </head>
@@ -96,7 +95,6 @@
       </g>
     </g></svg>
     <div class="shadow"></div>
-    <div class="cue" id="cue" hidden></div>
   </div>
   <div class="tag" id="tag"></div>
   <p class="guilt" id="guilt" hidden></p>
@@ -109,6 +107,7 @@
     <button id="skip">Skip break<kbd>Esc</kbd></button>
   </div>
 </main>
+<button class="lock" id="lock" hidden><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Lock screen</button>
 <script>
   const q = new URLSearchParams(location.search)
   const d = JSON.parse(q.get('d'))
@@ -124,7 +123,6 @@
   // Guided eye exercises. Other displays just show the plain break.
   const EX = {
     follow: ['Follow the ghost', 'Keep your head still and follow the ghost with your eyes.'],
-    nearfar: ['Near & far', 'Hold up a finger. Focus on it when the ghost comes close, look far away when it shrinks.'],
     blink: ['Blink along', 'Slow, full blinks. Close gently, hold a moment, open.'],
     palm: ['Palming', 'Rub your palms warm, then cup them over your closed eyes. We’ll chime when it’s over.'],
   }
@@ -139,12 +137,6 @@
   $('msg').textContent = ex ? ex[1] : d.msg
   $('guilt').textContent = d.guilt
   $('guilt').hidden = !d.guilt
-  if (d.exercise === 'nearfar' && ex) { // cue in step with the 8 s grow/shrink animation
-    let near = true
-    $('cue').hidden = false
-    const cue = () => { $('cue').textContent = near ? 'Near' : 'Far'; near = !near }
-    cue(); setInterval(cue, 4000)
-  }
   $('actions').hidden = !d.allowSkip && !d.preview
   // Postpone buttons work from the first second; a preview only offers Close.
   document.querySelectorAll('[data-mins]').forEach(b => {
@@ -163,6 +155,9 @@
   label()
   const unlock = lock && setInterval(() => { if (--lock === 0) clearInterval(unlock); label() }, 1000)
   $('skip').onclick = trySkip
+  // Lock the computer and walk away; the break keeps running underneath.
+  $('lock').hidden = !primary || d.preview
+  $('lock').onclick = () => api.send('action', { type: 'lock' })
   addEventListener('keydown', e => e.key === 'Escape' && trySkip())
 
   function chime(notes) {

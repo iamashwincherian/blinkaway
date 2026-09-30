@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-    "test": "node test/logic.js"
+    "test": "node test/logic.js",
+    "predist": "node build/make-lock.js"
   },
   "build": {
     "appId": "com.blinkaway.app",
@@ -20,7 +21,13 @@
       "category": "public.app-category.healthcare-fitness",
       "extendInfo": {
         "LSUIElement": true
-      }
+      },
+      "extraResources": [
+        {
+          "from": "build/lock",
+          "to": "lock"
+        }
+      ]
     },
     "win": {
       "target": "nsis"

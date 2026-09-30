@@ -58,9 +58,9 @@ setImmediate(async () => {
   assert.deepStrictEqual([today.taken, today.skipped, today.postponed], [5, 3, 1])
   console.log('✓ 5 finished breaks → streak 5, ghost happy; today = 5 taken, 3 skipped, 1 postponed')
 
-  const kinds = new Set(); for (let i = 0; i < 5; i++) { handlers.action(null, { type: 'start' }); kinds.add(data().exercise); handlers.action(null, { type: 'skip' }) }
-  assert.strictEqual(kinds.size, 5)
-  console.log('✓ exercises rotate through all 5 without repeats:', [...kinds].join(', '))
+  const kinds = new Set(); for (let i = 0; i < 4; i++) { handlers.action(null, { type: 'start' }); kinds.add(data().exercise); handlers.action(null, { type: 'skip' }) }
+  assert.strictEqual(kinds.size, 4)
+  console.log('✓ exercises rotate through all 4 without repeats:', [...kinds].join(', '))
 
   assert(JSON.parse(fs.readFileSync(path.join(tmp, 'stats.json'))).best >= 5)
   console.log('✓ stats persisted to stats.json')

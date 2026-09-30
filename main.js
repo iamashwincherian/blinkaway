@@ -44,7 +44,7 @@ let left = s.workMin * 60 // seconds of screen time until the next break
 let breakLeft = 0, breaks = 0, breakStart = 0
 let currentPlanned = null, snoozedPlanned = null // fixed-time break on screen / pushed back with +1/+5
 const plannedDone = {} // 'YYYY-MM-DD HH:MM' → handled today
-const EXERCISES = ['follow', 'nearfar', 'blink', 'palm', 'far']
+const EXERCISES = ['follow', 'blink', 'palm', 'far']
 let exercise = Math.floor(Math.random() * EXERCISES.length) // rotates so the same one never repeats back to back
 let pausedUntil = 0 // ms timestamp, Infinity = until resumed
 let blocker = '' // app currently delaying breaks (video, call, fullscreen)
@@ -350,6 +350,14 @@ async function watchBlocker() {
   render()
 }
 
+// Lock the computer; the break keeps counting underneath. macOS uses the bundled build/lock helper
+// (SACLockScreenImmediate, no permissions needed), falling back to sleeping the display.
+function lockScreen() {
+  if (!isMac) return execFile('rundll32.exe', ['user32.dll,LockWorkStation'])
+  const helper = app.isPackaged ? path.join(process.resourcesPath, 'lock') : path.join(__dirname, 'build', 'lock')
+  execFile(helper, err => err && execFile('pmset', ['displaysleepnow']))
+}
+
 function watchWindows() {
   // One long-lived PowerShell printing "<state>|<mic app>" every 4 s.
   // state: SHQueryUserNotificationState, 2 busy, 3 D3D fullscreen, 4 presentation.
@@ -395,6 +403,7 @@ ipcMain.on('settings', (_, next) => {
 ipcMain.on('action', (_, { type, mins }) => {
   if (type === 'start') startBreak()
   if (type === 'preview') previewBreak()
+  if (type === 'lock') lockScreen()
   if (type === 'close-preview') fadeOut([previewWin])
   if (type === 'skip' && (s.allowSkip || !breakLeft)) skip()
   if (type === 'snooze' && breakLeft) { // postpone a running break; it doesn't count toward long breaks
