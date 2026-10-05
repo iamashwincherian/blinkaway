@@ -37,7 +37,7 @@ export default function Home() {
         <a className="pill-note" href="#platforms">
           <b>BlinkAway 1.0</b><span className="sep" />Now on Mac and Windows<Icon.arrowR />
         </a>
-        <img className="app-icon" src="/icon.png" alt="BlinkAway app icon" width="110" height="110" />
+        <div className="app-icon"><img className="float" src="/icon.png" alt="BlinkAway app icon" width="110" height="110" /><div className="shadow" /></div>
         <h1>The break app<br />your eyes thank you for</h1>
         <p className="lede">A smart break reminder for Mac and Windows — eye breaks, blink and posture nudges that quietly take care of your screen habits while you work.</p>
         <DownloadButtons />

@@ -9,13 +9,11 @@ for (let y = 0; y < S; y++) {
     let acc = [0, 0, 0, 0]
     for (let i = 0; i < 4; i++) {
       const u = x + (i % 2 + 0.5) / 2, v = y + ((i >> 1) + 0.5) / 2
-      const q = Math.max(Math.abs(u - 512) - 232, 0) ** 5 + Math.max(Math.abs(v - 512) - 232, 0) ** 5
-      if (Math.abs(u - 512) > 412 || Math.abs(v - 512) > 412 || q > 180 ** 5) continue // squircle, 100px margin
-      let c = [29, 27, 22] // ink tile
-      // The ghost, in the logo's 100-unit space: a capsule leaning 12°, two oval eyes
-      const dx = (u - 512) / 5.6, dy = (v - 512) / 5.6
+      // The ghost alone on transparent, in the logo's 100-unit space: a capsule leaning 12°, two ink oval eyes
+      const dx = (u - 512) / 12.4, dy = (v - 512) / 12.4
       const bx = 50 + dx * cos - dy * sin, by = 50 + dx * sin + dy * cos
-      if (Math.hypot(bx - 50, by - Math.min(67, Math.max(33, by))) < 19 && !oval(bx, by, 44) && !oval(bx, by, 57)) c = [255, 206, 58]
+      if (Math.hypot(bx - 50, by - Math.min(67, Math.max(33, by))) >= 19) continue
+      const c = oval(bx, by, 44) || oval(bx, by, 57) ? [29, 27, 22] : [255, 206, 58]
       acc = acc.map((a, k) => a + (k < 3 ? c[k] : 255) / 4)
     }
     const o = y * (S * 4 + 1) + 1 + x * 4
