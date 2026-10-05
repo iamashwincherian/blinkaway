@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Distant — Redesign</title>
+<style>
+/* ================= Tokens ================= */
+:root {
+  --bg: #fbfbfd; --surface: #fff; --fill: #f5f5f7; --fill-2: #e8e8ed;
+  --text: #1d1d1f; --muted: #6e6e73; --faint: #86868b; --line: rgba(0,0,0,.1);
+  --accent: #1d1d1f; --accent-fg: #fff; --link: #1d1d1f; --warm: #a87a00; --ring: rgba(255,206,58,.75);
+  --sun: #ffce3a; --ink: #1d1b16;
+  --nav: rgba(251,251,253,.71); --gloss-top: rgba(255,255,255,.42); --gloss-edge: rgba(255,255,255,.45);
+  --sky-1: #dce8ff; --sky-2: #fff1df; --sky-3: #ffd7a8; --hill-1: #c9d7f2; --hill-2: #aebfe6; --hill-3: #8ea5d8;
+  --wall: linear-gradient(160deg, #cfdcff 0%, #f3dcf0 55%, #ffe6c2 100%);
+  --win: rgba(255,255,255,.92); --win-text: #1d1d1f; --win-muted: #6e6e73; --win-line: rgba(0,0,0,.08);
+  --toast: rgba(252,250,244,.96); --toast-muted: #6b665a;
+  --shadow-lg: 0 30px 80px -20px rgba(20,30,60,.25), 0 10px 30px -10px rgba(20,30,60,.12);
+  --ease: cubic-bezier(.25,.1,.25,1); --spring: cubic-bezier(.3,1.35,.5,1);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --surface: #161617; --fill: #1d1d1f; --fill-2: #2c2c2e;
+    --text: #f5f5f7; --muted: #a1a1a6; --faint: #86868b; --line: rgba(255,255,255,.12);
+    --accent: #f5f5f7; --accent-fg: #000; --link: #f5f5f7; --warm: #ffce3a; --ring: rgba(255,206,58,.75);
+    --nav: rgba(22,22,23,.78); --gloss-top: transparent; --gloss-edge: transparent;
+    --sky-1: #0d1330; --sky-2: #3a2552; --sky-3: #b0566a; --hill-1: #2a2650; --hill-2: #1d1b3d; --hill-3: #12112a;
+    --wall: linear-gradient(160deg, #1a1f3d 0%, #3b2448 55%, #5a3328 100%);
+    --win: rgba(40,40,42,.92); --win-text: #f5f5f7; --win-muted: #a1a1a6; --win-line: rgba(255,255,255,.08);
+    --toast: rgba(36,33,27,.96); --toast-muted: #b4ad9b;
+    --shadow-lg: 0 30px 80px -20px rgba(0,0,0,.7), 0 10px 30px -10px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --surface: #161617; --fill: #1d1d1f; --fill-2: #2c2c2e;
+  --text: #f5f5f7; --muted: #a1a1a6; --faint: #86868b; --line: rgba(255,255,255,.12);
+  --accent: #f5f5f7; --accent-fg: #000; --link: #f5f5f7; --warm: #ffce3a; --ring: rgba(255,206,58,.75);
+  --nav: rgba(22,22,23,.78); --gloss-top: transparent; --gloss-edge: transparent;
+  --sky-1: #0d1330; --sky-2: #3a2552; --sky-3: #b0566a; --hill-1: #2a2650; --hill-2: #1d1b3d; --hill-3: #12112a;
+  --wall: linear-gradient(160deg, #1a1f3d 0%, #3b2448 55%, #5a3328 100%);
+  --win: rgba(40,40,42,.92); --win-text: #f5f5f7; --win-muted: #a1a1a6; --win-line: rgba(255,255,255,.08);
+  --toast: rgba(36,33,27,.96); --toast-muted: #b4ad9b;
+  --shadow-lg: 0 30px 80px -20px rgba(0,0,0,.7), 0 10px 30px -10px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+
+/* ================= Base ================= */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.47 var(--font); letter-spacing: -.012em; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.025em; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+.eyebrow { font-size: 17px; font-weight: 600; color: var(--muted); letter-spacing: -.01em; }
+.section { padding-block: 140px; }
+.sec-title { font-size: clamp(36px, 5.2vw, 64px); line-height: 1.06; }
+.sec-lede { margin-top: 20px; max-width: 620px; font-size: 21px; line-height: 1.38; color: var(--muted); }
+.sec-lede b { color: var(--text); font-weight: 600; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; border: 0; background: var(--accent); color: var(--accent-fg); font-size: 17px; font-weight: 600; cursor: pointer; transition: background .2s, transform .2s var(--ease); white-space: nowrap; }
+.btn:hover { transform: scale(1.02); filter: brightness(1.15); }
+.btn:active { transform: scale(.97); }
+.btn svg { width: 17px; height: 17px; margin-top: -2px; }
+.btn-sm { height: 30px; padding: 0 14px; font-size: 13px; }
+.btn-line { background: transparent; color: var(--link); box-shadow: inset 0 0 0 1.5px var(--link); }
+.btn-line:hover { background: var(--accent); color: var(--accent-fg); filter: none; }
+.link { color: var(--link); font-weight: 500; font-size: 17px; display: inline-flex; align-items: center; gap: 2px; }
+.link:hover { text-decoration: underline; }
+.link::after { content: '›'; font-size: 1.25em; line-height: 1; margin-left: 3px; transform: translateY(-1px); }
+
+/* reveal */
+.rv { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } * { animation: none !important; } }
+
+/* ================= Ghost ================= */
+.ghost svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.ghost .lean { transform-origin: 50px 50px; transform-box: view-box; transition: transform .6s var(--spring); }
+.ghost .lid { transform-box: fill-box; transform-origin: center; animation: blink 3.2s infinite; }
+@keyframes blink { 0%, 44%, 52%, 100% { transform: scaleY(1); } 48% { transform: scaleY(.1); } }
+.float { animation: float 5s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-6%); } }
+
+/* ================= Nav (full-width bar, Apple-style) ================= */
+.nav { position: fixed; z-index: 50; top: 20px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); height: 56px; border-radius: 999px;
+  background: linear-gradient(180deg, var(--gloss-top), transparent 55%), var(--nav); border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 var(--gloss-edge), inset 0 -1px 0 rgba(0,0,0,.02), 0 6px 28px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.02);
+  -webkit-backdrop-filter: saturate(1.9) blur(22px); backdrop-filter: saturate(1.9) blur(22px); }
+.nav .wrap { display: flex; align-items: center; height: 100%; gap: 8px; max-width: none; padding: 0 10px 0 18px; }
+.brand { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+.brand .ghost { width: 22px; height: 22px; }
+.nav nav { display: flex; gap: 2px; margin: 0 auto; font-size: 14px; font-weight: 500; color: var(--muted); }
+.nav nav a { padding: 6px 11px; border-radius: 999px; transition: color .2s, background .2s; }
+.nav nav a:hover { color: var(--text); background: var(--fill); }
+.nav .tools { display: flex; align-items: center; gap: 6px; }
+.nav .btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.icon-btn { width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: none; border-radius: 50%; color: var(--muted); cursor: pointer; }
+.icon-btn:hover { color: var(--text); background: var(--fill); }
+.icon-btn svg { width: 17px; height: 17px; }
+
+/* ================= Hero ================= */
+.hero { padding: 160px 0 120px; }
+.hero .wrap { display: grid; grid-template-columns: 1fr 1.08fr; align-items: center; gap: 56px; }
+.hero h1 { font-size: clamp(48px, 7vw, 88px); line-height: 1.02; letter-spacing: -.035em; margin-top: 14px; }
+.hero h1 span { color: var(--faint); }
+.hero .lede { margin-top: 24px; font-size: 21px; line-height: 1.4; color: var(--muted); max-width: 470px; }
+.hero .cta { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-top: 36px; }
+.hero .fine { margin-top: 22px; font-size: 13px; color: var(--faint); }
+.hero-copy > * { animation: up 1s var(--ease) both; }
+.hero-copy > :nth-child(2) { animation-delay: .06s; } .hero-copy > :nth-child(3) { animation-delay: .12s; }
+.hero-copy > :nth-child(4) { animation-delay: .18s; } .hero-copy > :nth-child(5) { animation-delay: .24s; }
+@keyframes up { from { opacity: 0; transform: translateY(20px); } }
+
+/* the horizon scene */
+.scene { position: relative; aspect-ratio: 4 / 4.4; border-radius: 36px; overflow: hidden; container-type: inline-size; box-shadow: var(--shadow-lg); animation: up 1.2s .1s var(--ease) both;
+  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 52%, var(--sky-3) 64%); }
+.scene .sun { position: absolute; left: 62%; top: 52%; width: 22cqw; height: 22cqw; margin: -11cqw 0 0 -11cqw; border-radius: 50%; background: radial-gradient(circle, #fff6d6 0 30%, rgba(255,214,120,.55) 31%, transparent 70%); animation: sun 9s ease-in-out infinite; }
+@keyframes sun { 50% { transform: scale(1.12); } }
+.scene .hills { position: absolute; inset: auto 0 0; width: 100%; height: 50%; }
+.scene .hero-ghost { position: absolute; left: 13%; bottom: 13%; width: 30cqw; height: 30cqw; }
+.scene .hero-ghost .shadow { position: absolute; left: 32%; right: 32%; bottom: -2%; height: 3%; border-radius: 50%; background: rgba(0,0,0,.18); filter: blur(2px); }
+/* dimension line from ghost to the sun: the "20 ft" */
+.dim { position: absolute; left: 36%; top: 52%; width: 26%; height: 0; border-top: 1.5px dashed rgba(29,29,31,.45); transform-origin: left; transform: rotate(0deg); }
+.dim::before, .dim::after { content: ''; position: absolute; top: -6px; width: 1.5px; height: 11px; background: rgba(29,29,31,.45); }
+.dim::before { left: 0; } .dim::after { right: 0; }
+.dim span { position: absolute; left: 50%; top: -15px; transform: translate(-50%, -100%); padding: 3px 9px; border-radius: 999px; font-size: 2.8cqw; font-weight: 600; background: rgba(255,255,255,.8); color: #1d1d1f; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); white-space: nowrap; }
+:root[data-theme="dark"] .dim, :root[data-theme="dark"] .dim::before, :root[data-theme="dark"] .dim::after { border-color: rgba(255,255,255,.5); }
+:root[data-theme="dark"] .dim::before, :root[data-theme="dark"] .dim::after { background: rgba(255,255,255,.5); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dim { border-color: rgba(255,255,255,.5); } :root:not([data-theme="light"]) .dim::before, :root:not([data-theme="light"]) .dim::after { background: rgba(255,255,255,.5); } }
+.scene .chip { position: absolute; left: 50%; bottom: 5.5%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 999px; background: rgba(255,255,255,.75); color: #1d1d1f; -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px); font-size: max(12px, 2.9cqw); white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.scene .chip b { font-weight: 600; }
+.scene .chip .t { font-variant-numeric: tabular-nums; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.07); }
+
+/* ================= Eye chart (20-20-20) ================= */
+.chart-sec { text-align: center; border-top: 1px solid var(--line); }
+.chart { margin: 64px auto 0; max-width: 900px; }
+.chart .row { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.chart .row:first-child { border-top: 1px solid var(--line); }
+.chart .row small { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.chart .row small:first-child { text-align: left; } .chart .row small:last-child { text-align: right; }
+.chart .line { font-weight: 700; letter-spacing: .12em; white-space: nowrap; text-transform: uppercase; line-height: 1.1; filter: blur(10px); opacity: .25; transition: filter 1.4s var(--ease), opacity 1.4s var(--ease); }
+.chart.in .line { filter: none; opacity: 1; }
+.chart .row:nth-child(2) .line { transition-delay: .25s; } .chart .row:nth-child(3) .line { transition-delay: .5s; } .chart .row:nth-child(4) .line { transition-delay: .75s; }
+.chart .l1 { font-size: clamp(22px, 5.6vw, 62px); }
+.chart .l2 { font-size: clamp(18px, 4vw, 44px); }
+.chart .l3 { font-size: clamp(15px, 2.8vw, 30px); }
+.chart .l4 { font-size: 10px; letter-spacing: .24em; white-space: normal; color: var(--muted); }
+.chart-note { margin: 40px auto 0; max-width: 560px; color: var(--muted); font-size: 19px; }
+
+/* ================= A day with Distant ================= */
+.day { border-top: 1px solid var(--line); }
+.day-grid { display: grid; grid-template-columns: .72fr 1.28fr; gap: 56px; margin-top: 72px; }
+.steps { padding-bottom: 20vh; }
+.step { min-height: 72vh; display: flex; flex-direction: column; justify-content: center; opacity: .28; transition: opacity .5s var(--ease); }
+.step.on { opacity: 1; }
+.step time { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--warm); }
+.step h3 { margin-top: 10px; font-size: clamp(28px, 3.2vw, 40px); line-height: 1.1; }
+.step p { margin-top: 14px; font-size: 19px; color: var(--muted); }
+.step kbd { font: 600 15px var(--font); padding: 2px 7px; border-radius: 6px; background: var(--fill); border: 1px solid var(--line); color: var(--text); }
+.holds { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.holds span { font-size: 14px; padding: 6px 12px; border-radius: 999px; background: var(--fill); color: var(--text); }
+.stage-col { position: relative; }
+.stage { position: sticky; top: calc(50vh - 22vw); container-type: inline-size; aspect-ratio: 16 / 10.4; border-radius: 22px; overflow: hidden; background: var(--wall); box-shadow: var(--shadow-lg); font-size: 1.7cqw; color: var(--win-text); }
+@media (min-width: 1200px) { .stage { top: calc(50vh - 240px); } }
+
+/* menubar */
+.mbar { position: absolute; inset: 0 0 auto; z-index: 5; height: 4.6cqw; display: flex; align-items: center; gap: 2.4cqw; padding: 0 2cqw; font-size: 1.75cqw; background: rgba(255,255,255,.4); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); color: #1d1d1f; }
+.mbar svg.apple { width: 2cqw; height: 2cqw; }
+.mbar .r { margin-left: auto; display: flex; align-items: center; gap: 2.2cqw; }
+.mbar .tray { display: flex; align-items: center; gap: .6cqw; padding: .3cqw .8cqw; border-radius: .8cqw; font-variant-numeric: tabular-nums; font-weight: 500; }
+.mbar .tray.hi { background: rgba(0,0,0,.12); }
+.mbar .tray .ghost { width: 2.6cqw; height: 2.6cqw; }
+.mbar .clock { font-variant-numeric: tabular-nums; min-width: 6cqw; text-align: right; }
+
+.layer { position: absolute; inset: 0; opacity: 0; transform: scale(.97); transition: opacity .55s var(--ease), transform .55s var(--ease); pointer-events: none; }
+.layer.on { opacity: 1; transform: none; }
+
+/* window */
+.win { position: absolute; background: var(--win); border-radius: 1.6cqw; box-shadow: 0 2cqw 6cqw rgba(0,0,0,.18), 0 0 0 1px var(--win-line); overflow: hidden; -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.win .bar { height: 4.4cqw; display: flex; align-items: center; gap: .9cqw; padding: 0 1.6cqw; border-bottom: 1px solid var(--win-line); font-size: 1.6cqw; font-weight: 600; color: var(--win-muted); }
+.win .bar i { width: 1.3cqw; height: 1.3cqw; border-radius: 50%; background: #ff5f57; } .win .bar i:nth-child(2) { background: #febc2e; } .win .bar i:nth-child(3) { background: #28c840; }
+.win .bar span { margin: 0 auto; transform: translateX(-3cqw); }
+.doc { padding: 3cqw 3.6cqw; display: grid; gap: 1.3cqw; }
+.doc b, .doc s { display: block; height: 1.3cqw; border-radius: 1cqw; background: var(--win-line); text-decoration: none; }
+.doc b { height: 2.2cqw; width: 46%; background: var(--win-muted); opacity: .45; margin-bottom: .6cqw; }
+
+/* toast */
+.toast { position: absolute; right: 2cqw; top: 6.6cqw; width: 42%; padding: 1.6cqw; border-radius: 2cqw; background: var(--toast); color: var(--win-text); box-shadow: 0 1.6cqw 5cqw rgba(0,0,0,.2), 0 0 0 1px var(--win-line); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); transition: transform .7s var(--spring) .15s; }
+.layer:not(.on) .toast { transform: translateX(110%); }
+.toast + .toast { top: 21cqw; transition-delay: .35s; }
+.toast .row { display: flex; gap: 1.4cqw; align-items: center; }
+.toast .av { position: relative; flex: none; width: 5.4cqw; height: 5.4cqw; border-radius: 50%; background: rgba(255,206,58,.18); display: grid; place-items: center; }
+.toast .av .ghost { width: 4.6cqw; height: 4.6cqw; }
+.toast .av svg.ring { position: absolute; inset: -.3cqw; width: calc(100% + .6cqw); height: calc(100% + .6cqw); transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 3; } .ring .tr { stroke: rgba(0,0,0,.08); } .ring .fl { stroke: #e0a800; stroke-linecap: round; stroke-dasharray: 138.2; }
+.layer.on .ring .fl { animation: ring 10s linear infinite; }
+@keyframes ring { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 138.2; } }
+.toast b { display: block; font-size: 1.8cqw; } .toast small { display: block; font-size: 1.45cqw; color: var(--toast-muted); line-height: 1.35; margin-top: .2cqw; }
+.toast .btns { display: flex; gap: .8cqw; margin-top: 1.4cqw; }
+.toast .btns span { flex: 1; text-align: center; padding: .8cqw 0; border-radius: 1cqw; background: rgba(127,127,127,.12); font-size: 1.4cqw; font-weight: 600; }
+.toast .btns span:first-child { flex: 1.8; background: #1d1b16; color: #fff; }
+
+/* tray menu */
+.tmenu { position: absolute; top: 5.4cqw; right: 12cqw; width: 34%; padding: .7cqw; border-radius: 1.4cqw; background: rgba(246,246,246,.88); color: #1d1d1f; box-shadow: 0 1.6cqw 5cqw rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.08); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); font-size: 1.6cqw; transform-origin: top right; transition: transform .45s var(--spring) .1s; }
+.layer:not(.on) .tmenu { transform: scale(.9); }
+.tmenu div { display: flex; justify-content: space-between; padding: .55cqw 1.1cqw; border-radius: .7cqw; }
+.tmenu div.m { color: #86868b; } .tmenu div.hl { background: #0a84ff; color: #fff; }
+.tmenu hr { border: 0; height: 1px; background: rgba(0,0,0,.1); margin: .5cqw 1.1cqw; }
+
+/* break screens (scaled in cqw) */
+.brk { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #f6f2e6; }
+.brk .ghost { width: 11cqw; height: 11cqw; }
+.brk .tag { margin-top: 2cqw; font-size: 1.4cqw; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; opacity: .65; }
+.brk .msg { margin-top: 1cqw; font-size: 2.8cqw; font-weight: 500; letter-spacing: -.02em; max-width: 70%; }
+.brk .time { margin-top: 1.4cqw; font-size: 6cqw; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.brk .acts { display: flex; gap: 1cqw; margin-top: 2cqw; font-size: 1.4cqw; }
+.brk .acts span { padding: .8cqw 1.6cqw; border-radius: 999px; background: rgba(255,255,255,.12); }
+.bg-honey { background: radial-gradient(ellipse at 50% 40%, #33290f, #17150f 62%); }
+.bg-daylight { background: linear-gradient(160deg, #fffaf0, #f3e9d2); color: #2a2418; }
+.bg-daylight .acts span { background: rgba(0,0,0,.06); }
+.bg-dusk { background: linear-gradient(160deg, #0f0c29, #302b63 55%, #6d3a7c); }
+.bg-ocean { background: linear-gradient(160deg, #021b2e, #0b4f6c 55%, #1f8a8a); }
+.bg-forest { background: linear-gradient(160deg, #07170f, #1d4d33 55%, #587a3d); }
+.bg-ember { background: linear-gradient(160deg, #1a0b0b, #6b1f2a 55%, #c2593f); }
+
+/* call */
+.call { left: 8%; right: 8%; top: 10cqw; bottom: 5cqw; }
+.call .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 1cqw; padding: 1.2cqw; height: calc(100% - 4.4cqw - 6.4cqw); }
+.call .tiles div { border-radius: 1.2cqw; display: grid; place-items: center; }
+.call .tiles i { width: 7cqw; height: 7cqw; border-radius: 50%; background: rgba(255,255,255,.35); display: grid; place-items: center; font: 600 2.4cqw var(--font); font-style: normal; color: #fff; }
+.call .ctrl { display: flex; justify-content: center; gap: 1.2cqw; }
+.call .ctrl span { width: 4.6cqw; height: 4.6cqw; border-radius: 50%; background: rgba(127,127,127,.18); }
+.call .ctrl span:last-child { width: 9cqw; border-radius: 999px; background: #ff3b30; }
+
+/* report */
+.report { left: 12%; right: 12%; top: 8.5cqw; bottom: 4cqw; }
+.report .in { display: grid; grid-template-columns: auto 1fr; gap: 2cqw; padding: 2.4cqw 3cqw; align-items: center; }
+.report .halo { width: 9cqw; height: 9cqw; border-radius: 50%; background: rgba(255,206,58,.2); display: grid; place-items: center; }
+.report .halo .ghost { width: 7.6cqw; height: 7.6cqw; }
+.report h4 { margin: 0; font-size: 2.4cqw; font-weight: 600; letter-spacing: -.02em; } .report h4 + p { font-size: 1.5cqw; color: var(--win-muted); }
+.report .tiles { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1cqw; }
+.report .tiles div { padding: 1.2cqw; border-radius: 1.2cqw; background: rgba(127,127,127,.1); }
+.report .tiles b { display: block; font-size: 3cqw; font-weight: 600; line-height: 1.1; } .report .tiles span { font-size: 1.3cqw; color: var(--win-muted); }
+.report .bars { grid-column: 1 / -1; display: flex; align-items: flex-end; gap: 1.4cqw; height: 9cqw; }
+.report .bars div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .4cqw; height: 100%; }
+.report .bars i { width: 100%; border-radius: .6cqw; background: var(--sun); transform-origin: bottom; transition: transform .8s var(--spring); }
+.report .bars i.s { background: rgba(127,127,127,.3); }
+.layer:not(.on) .report .bars i { transform: scaleY(0); }
+.report .bars small { font-size: 1.1cqw; color: var(--win-muted); }
+
+/* ================= Moods ================= */
+.moods { background: #000; color: #f5f5f7; text-align: center; }
+.moods .sec-lede { margin-inline: auto; color: #a1a1a6; }
+.mood-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 80px; }
+.mood { padding: 40px 16px 32px; border-radius: 28px; background: #161617; cursor: default; transition: background .3s, transform .4s var(--spring); }
+.mood:hover { background: #1d1d1f; transform: translateY(-6px); }
+.mood .ghost { width: 120px; height: 120px; margin: 0 auto; }
+.mood .ghost .lean { transition: transform .6s var(--spring); }
+.mood:hover .ghost .lean { transform: rotate(0deg) translateY(-4px) !important; }
+.mood h3 { margin-top: 24px; font-size: 21px; }
+.mood p { margin-top: 6px; font-size: 15px; color: #a1a1a6; }
+
+/* ================= Settings window ================= */
+.tune { text-align: center; }
+.tune .sec-lede { margin-inline: auto; }
+.prefs { margin: 72px auto 0; max-width: 940px; display: grid; grid-template-columns: 220px 1fr; min-height: 520px; text-align: left; border-radius: 22px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow-lg), 0 0 0 1px var(--line); }
+.prefs aside { padding: 18px 12px; background: var(--fill); border-right: 1px solid var(--line); }
+.prefs .lights { display: flex; gap: 8px; padding: 0 8px 22px; }
+.prefs .lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; } .prefs .lights i:nth-child(2) { background: #febc2e; } .prefs .lights i:nth-child(3) { background: #28c840; }
+.prefs aside button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px; background: none; font-size: 14px; text-align: left; cursor: pointer; }
+.prefs aside button:hover { background: rgba(127,127,127,.12); }
+.prefs aside button[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+.prefs aside button em { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-style: normal; color: #fff; font-size: 12px; }
+.prefs aside button em svg { width: 13px; height: 13px; }
+.pane { display: none; padding: 32px 36px; }
+.pane.on { display: block; animation: up .4s var(--ease); }
+.pane h3 { font-size: 22px; }
+.pane > p { margin-top: 4px; font-size: 14px; color: var(--muted); }
+.group { margin-top: 22px; border-radius: 12px; background: var(--fill); }
+.group > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 8px 16px; font-size: 15px; }
+.group > div + div { border-top: 1px solid var(--line); }
+.stepper { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.stepper output { min-width: 64px; text-align: center; font-weight: 600; }
+.stepper button { width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: 17px; cursor: pointer; }
+.stepper button:hover { background: var(--fill-2); }
+.preview { position: relative; margin-top: 22px; aspect-ratio: 16 / 8; border-radius: 14px; overflow: hidden; container-type: inline-size; transition: background .5s var(--ease); }
+.preview .brk .ghost { width: 13cqw; height: 13cqw; }
+.preview .brk .msg { font-size: 3.4cqw; } .preview .brk .time { font-size: 7cqw; } .preview .brk .tag { font-size: 1.7cqw; }
+.swatches { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.swatch { width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; box-shadow: 0 0 0 1px var(--line); transition: transform .2s var(--spring), box-shadow .2s; }
+.swatch:hover { transform: scale(1.08); }
+.swatch[aria-checked="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.sw-label { margin-top: 10px; font-size: 13px; color: var(--muted); text-transform: capitalize; }
+.sound-btn { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 8px; border: 0; background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: 14px; cursor: pointer; }
+.sound-btn svg { width: 15px; height: 15px; }
+.sound-btn.playing { color: var(--accent); }
+.msgs > div { font-size: 15px; }
+.msgs .caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: -.15em; background: var(--sun); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.ex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
+.ex { padding: 16px; border-radius: 14px; background: var(--fill); border: 0; text-align: left; cursor: pointer; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
+.ex[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); }
+.ex b { display: block; font-size: 15px; } .ex span { font-size: 13px; color: var(--muted); }
+.ex-stage { position: relative; height: 150px; margin-top: 16px; border-radius: 14px; overflow: hidden; }
+.ex-stage .ghost { position: absolute; left: 50%; top: 50%; width: 80px; height: 80px; margin: -40px 0 0 -40px; transition: transform .6s var(--ease); }
+.ex-stage.follow .ghost { animation: follow 4s ease-in-out infinite; }
+@keyframes follow { 0%, 100% { transform: translateX(-140px); } 50% { transform: translateX(140px); } }
+.ex-stage.far .ghost { animation: far 4s ease-in-out infinite; }
+@keyframes far { 50% { transform: scale(.3) translateY(-60px); } }
+
+/* ================= Compare ================= */
+.compare { border-top: 1px solid var(--line); text-align: center; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 72px; }
+.col { padding: 0 40px; }
+.col + .col { border-left: 1px solid var(--line); }
+.col > svg { width: 44px; height: 44px; }
+.col h3 { margin-top: 18px; font-size: 32px; }
+.col .sub { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.col .btn { margin-top: 24px; }
+.spec { margin-top: 40px; text-align: center; }
+.spec div { padding: 22px 0; border-top: 1px solid var(--line); }
+.spec small { display: block; font-size: 12px; color: var(--faint); margin-bottom: 4px; }
+.spec span { font-size: 17px; }
+.spec kbd { font: 600 15px var(--font); }
+
+/* ================= FAQ ================= */
+.faq { border-top: 1px solid var(--line); }
+.faq .wrap { display: grid; grid-template-columns: 1fr 1.5fr; gap: 64px; }
+.qa details { border-bottom: 1px solid var(--line); }
+.qa details:first-child { border-top: 1px solid var(--line); }
+.qa summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 24px 0; font-size: 21px; font-weight: 600; letter-spacing: -.02em; cursor: pointer; list-style: none; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::after { content: '+'; font-weight: 300; font-size: 28px; color: var(--muted); transition: transform .3s var(--ease); }
+.qa details[open] summary::after { transform: rotate(45deg); }
+.qa details p { padding: 0 48px 26px 0; color: var(--muted); font-size: 17px; }
+
+/* ================= Journal ================= */
+.journal { border-top: 1px solid var(--line); }
+.journal .head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; }
+.entries { margin-top: 48px; }
+.entry { display: grid; grid-template-columns: 140px 1fr auto; align-items: center; gap: 24px; padding: 26px 0; border-top: 1px solid var(--line); transition: padding .3s var(--ease); }
+.entry:last-child { border-bottom: 1px solid var(--line); }
+.entry small { font-size: 13px; color: var(--faint); }
+.entry h3 { font-size: 21px; }
+.entry p { margin-top: 4px; font-size: 15px; color: var(--muted); }
+.entry .arrow { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--fill); color: var(--muted); transition: background .2s, color .2s, transform .3s var(--ease); }
+.entry:hover { padding-left: 8px; }
+.entry:hover .arrow { background: var(--accent); color: var(--accent-fg); transform: translateX(4px); }
+.entry .arrow svg { width: 15px; height: 15px; }
+
+/* ================= Final CTA ================= */
+.final { position: relative; overflow: hidden; text-align: center; padding: 160px 0 0; background: linear-gradient(180deg, var(--bg) 0%, var(--sky-1) 30%, var(--sky-2) 70%, var(--sky-3) 100%); }
+.final h2 { font-size: clamp(44px, 7vw, 88px); line-height: 1.02; letter-spacing: -.035em; }
+.final p { margin: 22px auto 0; max-width: 520px; font-size: 21px; color: var(--muted); }
+.final .cta { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 40px; }
+.final .horizon { position: relative; height: 260px; margin-top: 80px; }
+.final .horizon .sun { position: absolute; left: 50%; bottom: 60px; width: 220px; height: 220px; margin-left: -110px; border-radius: 50%; background: radial-gradient(circle, #fff6d6 0 28%, rgba(255,214,120,.5) 30%, transparent 70%); }
+.final .horizon svg.h { position: absolute; inset: auto 0 0; width: 100%; height: 160px; }
+.final .horizon .ghost { position: absolute; left: calc(50% - 260px); bottom: 18px; width: 110px; height: 110px; }
+
+/* ================= Footer ================= */
+.foot { background: var(--fill); color: var(--muted); font-size: 12px; padding: 20px 0 32px; }
+.foot .cols-f { display: grid; grid-template-columns: repeat(3, 1fr) 1.4fr; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+.foot b { display: block; color: var(--text); font-weight: 600; margin-bottom: 10px; }
+.foot a { display: block; margin-bottom: 8px; } .foot a:hover { color: var(--text); text-decoration: underline; }
+.foot .legal { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 16px; }
+
+/* ================= Responsive ================= */
+@media (max-width: 900px) {
+  .section { padding-block: 96px; }
+  .hero { padding: 120px 0 88px; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 48px; }
+  .scene { aspect-ratio: 4 / 3.6; border-radius: 28px; }
+  .day-grid { grid-template-columns: 1fr; gap: 0; margin-top: 40px; }
+  .stage-col { order: -1; position: sticky; top: 88px; z-index: 2; }
+  .stage { position: relative; top: 0; }
+  .step { min-height: 64vh; justify-content: flex-start; padding-top: 32px; }
+  .mood-row { grid-template-columns: 1fr 1fr; }
+  .prefs { grid-template-columns: 1fr; }
+  .prefs aside { display: flex; gap: 4px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px; }
+  .prefs .lights { display: none; }
+  .prefs aside button { width: auto; white-space: nowrap; }
+  .pane { padding: 24px 20px; }
+  .cols { grid-template-columns: 1fr; gap: 72px; }
+  .col { padding: 0; } .col + .col { border-left: 0; }
+  .faq .wrap { grid-template-columns: 1fr; gap: 32px; }
+  .entry { grid-template-columns: 1fr auto; } .entry small { grid-column: 1 / -1; }
+  .foot .cols-f { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .nav nav { display: none; }
+  .nav .tools { margin-left: auto; }
+  .chart .row { grid-template-columns: 1fr; gap: 6px; } .chart .row small { display: none; }
+  .ex-grid { grid-template-columns: 1fr; }
+  .group > div { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ Nav ============ -->
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#"><span class="ghost" data-ghost="calm"></span>Distant</a>
+    <nav>
+      <a href="#day">How it works</a>
+      <a href="#moods">The ghost</a>
+      <a href="#tune">Customize</a>
+      <a href="#journal">Journal</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch light or dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/iamashwincherian/distant" aria-label="Distant on GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg></a>
+      <a class="btn btn-sm" href="#platforms">Download</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ============ Hero ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">Distant for Mac and Windows</p>
+      <h1>Give your eyes <span>some</span> distance.</h1>
+      <p class="lede">A break timer that knows when not to interrupt. It waits out your calls, nudges you to blink and sit back, and asks for twenty seconds of looking far away.</p>
+      <div class="cta">
+        <a class="btn" href="#platforms"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2-1.1 2.8-2.3.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.2 5.8c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>Download for Mac</a>
+        <a class="link" href="#platforms">Get it for Windows</a>
+      </div>
+      <p class="fine">Free and open source · Version 1.0.1</p>
+    </div>
+    <div class="scene" aria-hidden="true">
+      <div class="sun"></div>
+      <svg class="hills" viewBox="0 0 400 220" preserveAspectRatio="none">
+        <path d="M0 40 Q80 18 160 34 T320 26 T400 30 V220 H0Z" fill="var(--hill-1)"/>
+        <path d="M0 88 Q100 56 210 80 T400 70 V220 H0Z" fill="var(--hill-2)"/>
+        <path d="M0 150 Q120 118 250 140 T400 128 V220 H0Z" fill="var(--hill-3)"/>
+      </svg>
+      <div class="dim"><span>20 ft</span></div>
+      <div class="hero-ghost"><div class="ghost float" data-ghost="calm" data-lean="18"></div><div class="shadow"></div></div>
+      <div class="chip"><b>Eye break</b>Look at something far away<span class="t" id="heroT">0:20</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 20-20-20 as an eye chart ============ -->
+<section class="section chart-sec">
+  <div class="wrap">
+    <p class="eyebrow rv">The 20-20-20 rule</p>
+    <h2 class="sec-title rv">Read it from where you sit.</h2>
+    <div class="chart" id="chart">
+      <div class="row"><small>1</small><div class="line l1">Every 20 minutes</div><small>20/200</small></div>
+      <div class="row"><small>2</small><div class="line l2">Look 20 feet away</div><small>20/100</small></div>
+      <div class="row"><small>3</small><div class="line l3">For 20 seconds</div><small>20/50</small></div>
+      <div class="row"><small>4</small><div class="line l4">If you can read this line, you’re sitting too close</div><small>20/20</small></div>
+    </div>
+    <p class="chart-note rv">Eye-care professionals have recommended it for years. Distant just does the counting, so you don’t have to.</p>
+  </div>
+</section>
+
+<!-- ============ A day with Distant ============ -->
+<section class="section day" id="day">
+  <div class="wrap">
+    <p class="eyebrow rv">How it works</p>
+    <h2 class="sec-title rv">A workday,<br>with room to breathe.</h2>
+    <div class="day-grid">
+      <div class="steps">
+        <article class="step" data-i="0"><time>9:00 AM</time><h3>Quietly there from the first login.</h3><p>Distant opens at login and lives in your menu bar or system tray, with a live countdown if you like one. Press <kbd>⌥⇧⌘B</kbd> to start a break from anywhere.</p></article>
+        <article class="step" data-i="1"><time>10:24 AM</time><h3>Ten seconds’ notice. Every time.</h3><p>A small heads-up lets you finish the sentence first. Start now, push it a minute or five, or skip this one.</p></article>
+        <article class="step" data-i="2"><time>10:25 AM</time><h3>Then every screen goes soft.</h3><p>The break covers each display with a calm scene and one small thing to do. Skipping unlocks after five seconds, so you have to mean it.</p></article>
+        <article class="step" data-i="3"><time>11:00 AM</time><h3>Your call comes first.</h3><p>Breaks hold while you’re on a call or watching something, and pick up again with a quiet toast the moment you’re done.</p>
+          <div class="holds"><span>Microphone in use</span><span>Video playback</span><span>Fullscreen apps</span><span>Away from keyboard</span><span>Apps you choose</span></div></article>
+        <article class="step" data-i="4"><time>12:30 PM</time><h3>Lunch, on the schedule.</h3><p>Fixed-time breaks for lunch or an afternoon walk. They wait for calls to end, and skip themselves if you’ve already stepped away.</p></article>
+        <article class="step" data-i="5"><time>2:10 PM</time><h3>Small nudges in between.</h3><p>Blink and posture reminders slide in at the edge of the screen and never steal focus from what you’re typing.</p></article>
+        <article class="step" data-i="6"><time>6:00 PM</time><h3>How did your eyes do today?</h3><p>Your Report shows today’s breaks, your streaks, a seven-day chart and the hour you skip most often.</p></article>
+      </div>
+      <div class="stage-col">
+        <div class="stage" aria-hidden="true">
+          <div class="mbar">
+            <svg class="apple" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2-1.1 2.8-2.3.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.2 5.8c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>
+            <b>Pages</b><span>File</span><span>Edit</span><span>Format</span>
+            <span class="r"><span class="tray" id="tray"><span class="ghost" data-ghost="calm" data-lean="0"></span><span id="trayT">25:00</span></span><span class="clock" id="clock">9:00</span></span>
+          </div>
+
+          <!-- 0: tray menu -->
+          <div class="layer" data-i="0">
+            <div class="win" style="left:6%;right:30%;top:10cqw;bottom:6cqw"><div class="bar"><i></i><i></i><i></i><span>Roadmap.pages</span></div><div class="doc"><b></b><s style="width:94%"></s><s style="width:88%"></s><s style="width:91%"></s><s style="width:52%"></s></div></div>
+            <div class="tmenu"><div class="m"><span>Next break in 25:00</span></div><hr><div class="hl"><span>Take a Break Now</span><span>⌥⇧⌘B</span></div><div><span>Take a Long Break</span></div><div><span>Skip Next Break</span></div><div><span>Pause</span><span>›</span></div><hr><div><span>Your Report…</span></div><div><span>Settings…</span></div></div>
+          </div>
+          <!-- 1: heads-up -->
+          <div class="layer" data-i="1">
+            <div class="win" style="left:6%;right:22%;top:10cqw;bottom:6cqw"><div class="bar"><i></i><i></i><i></i><span>Roadmap.pages</span></div><div class="doc"><b></b><s style="width:94%"></s><s style="width:88%"></s><s style="width:91%"></s><s style="width:70%"></s><s style="width:84%"></s><s style="width:30%"></s></div></div>
+            <div class="toast"><div class="row"><div class="av"><svg class="ring" viewBox="0 0 48 48"><circle class="tr" cx="24" cy="24" r="22"/><circle class="fl" cx="24" cy="24" r="22"/></svg><span class="ghost" data-ghost="calm"></span></div><div><b>Break in 10 seconds</b><small>Wrap up your thought. Your eyes are next.</small></div></div><div class="btns"><span>Start now</span><span>+1 min</span><span>+5 min</span><span>Skip</span></div></div>
+          </div>
+          <!-- 2: break -->
+          <div class="layer" data-i="2">
+            <div class="brk bg-dusk"><span class="ghost float" data-ghost="calm"></span><div class="tag">Eye break</div><div class="msg">Look at something 20 feet away.</div><div class="time" id="brkT">1:00</div><div class="acts"><span>+1 min</span><span>+5 min</span><span>Skip break · Esc</span></div></div>
+          </div>
+          <!-- 3: call -->
+          <div class="layer" data-i="3">
+            <div class="win call"><div class="bar"><i></i><i></i><i></i><span>Design review</span></div>
+              <div class="tiles"><div style="background:linear-gradient(135deg,#5b8def,#7a5bef)"><i>AK</i></div><div style="background:linear-gradient(135deg,#ef8a5b,#ef5b7a)"><i>MR</i></div><div style="background:linear-gradient(135deg,#3fbf9a,#2a8fbf)"><i>JL</i></div><div style="background:linear-gradient(135deg,#c79a3a,#b0603a)"><i>You</i></div></div>
+              <div class="ctrl"><span></span><span></span><span></span></div></div>
+            <div class="toast"><div class="row"><div class="av"><span class="ghost" data-ghost="calm" data-lean="0"></span></div><div><b>Break on hold</b><small>You’re on a call. It’ll resume when you hang up.</small></div></div></div>
+          </div>
+          <!-- 4: lunch -->
+          <div class="layer" data-i="4">
+            <div class="brk bg-daylight"><span class="ghost float" data-ghost="happy"></span><div class="tag">Lunch</div><div class="msg">Step outside. The screen will keep.</div><div class="time">30:00</div><div class="acts"><span>+5 min</span><span>End break</span></div></div>
+          </div>
+          <!-- 5: nudges -->
+          <div class="layer" data-i="5">
+            <div class="win" style="left:6%;right:22%;top:10cqw;bottom:6cqw"><div class="bar"><i></i><i></i><i></i><span>Roadmap.pages</span></div><div class="doc"><b></b><s style="width:94%"></s><s style="width:88%"></s><s style="width:91%"></s><s style="width:70%"></s><b style="width:30%"></b><s style="width:84%"></s><s style="width:60%"></s></div></div>
+            <div class="toast"><div class="row"><div class="av"><span class="ghost" data-ghost="blink"></span></div><div><b>Blink</b><small>Close your eyes slowly a few times.</small></div></div></div>
+            <div class="toast"><div class="row"><div class="av"><span class="ghost" data-ghost="calm" data-lean="0"></span></div><div><b>Sit back</b><small>Drop your shoulders. Screen at eye level.</small></div></div></div>
+          </div>
+          <!-- 6: report -->
+          <div class="layer" data-i="6">
+            <div class="win report"><div class="bar"><i></i><i></i><i></i><span>Your Report</span></div>
+              <div class="in">
+                <div class="halo"><span class="ghost" data-ghost="happy"></span></div>
+                <div><h4>A good day for your eyes.</h4><p>You took every break after lunch.</p></div>
+                <div class="tiles"><div><b>9</b><span>Breaks taken</span></div><div><b>1</b><span>Skipped</span></div><div><b>6</b><span>In a row</span></div><div><b>3 PM</b><span>Most skipped</span></div></div>
+                <div class="bars" id="bars"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Moods ============ -->
+<section class="section moods" id="moods">
+  <div class="wrap">
+    <p class="eyebrow rv" style="color:#a1a1a6">The ghost</p>
+    <h2 class="sec-title rv">It notices.<br>It never nags.</h2>
+    <p class="sec-lede rv">The little ghost in your menu bar reflects how your day is going. Keep a streak and it lights up. Skip a few and it gets sleepy. No badges, no guilt.</p>
+    <div class="mood-row">
+      <div class="mood rv"><div class="ghost float" data-ghost="happy"></div><h3>Happy</h3><p>Five breaks in a row.</p></div>
+      <div class="mood rv"><div class="ghost float" data-ghost="calm" style="animation-delay:-1.2s"></div><h3>Calm</h3><p>Right on schedule.</p></div>
+      <div class="mood rv"><div class="ghost float" data-ghost="tired" style="animation-delay:-2.4s"></div><h3>Tired</h3><p>A couple of skips.</p></div>
+      <div class="mood rv"><div class="ghost float" data-ghost="sad" style="animation-delay:-3.6s"></div><h3>Sad</h3><p>It’s been a while.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Settings ============ -->
+<section class="section tune" id="tune">
+  <div class="wrap">
+    <p class="eyebrow rv">Customize</p>
+    <h2 class="sec-title rv">Set it once.<br>Then forget it’s there.</h2>
+    <p class="sec-lede rv">Timers, backgrounds, chimes, messages and guided exercises. <b>Try the settings right here.</b></p>
+    <div class="prefs rv">
+      <aside role="tablist" aria-label="Settings">
+        <div class="lights"><i></i><i></i><i></i></div>
+        <button role="tab" aria-selected="true" data-p="timers"><em style="background:#ff9f0a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/></svg></em>Timers</button>
+        <button role="tab" aria-selected="false" data-p="look"><em style="background:#5e5ce6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="14" rx="2"/></svg></em>Break screen</button>
+        <button role="tab" aria-selected="false" data-p="sound"><em style="background:#ff375f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9zM17 9a4 4 0 0 1 0 6"/></svg></em>Sounds</button>
+        <button role="tab" aria-selected="false" data-p="msgs"><em style="background:#30d158"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></em>Messages</button>
+        <button role="tab" aria-selected="false" data-p="ex"><em style="background:#0a84ff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg></em>Exercises</button>
+      </aside>
+      <div>
+        <div class="pane on" data-p="timers">
+          <h3>Timers</h3><p>Defaults follow the 20-20-20 rule, give or take.</p>
+          <div class="group">
+            <div><span>Take a break every</span><span class="stepper" data-v="25" data-step="5" data-min="5" data-max="90" data-u="min"><button type="button" aria-label="Less">−</button><output>25 min</output><button type="button" aria-label="More">+</button></span></div>
+            <div><span>Break length</span><span class="stepper" data-v="60" data-step="10" data-min="20" data-max="300" data-u="sec"><button type="button" aria-label="Less">−</button><output>60 sec</output><button type="button" aria-label="More">+</button></span></div>
+            <div><span>Long break after every</span><span class="stepper" data-v="3" data-step="1" data-min="2" data-max="8" data-u="breaks"><button type="button" aria-label="Less">−</button><output>3 breaks</output><button type="button" aria-label="More">+</button></span></div>
+            <div><span>Heads-up before a break</span><span class="stepper" data-v="10" data-step="5" data-min="5" data-max="60" data-u="sec"><button type="button" aria-label="Less">−</button><output>10 sec</output><button type="button" aria-label="More">+</button></span></div>
+          </div>
+        </div>
+        <div class="pane" data-p="look">
+          <h3>Break screen</h3><p>Six backgrounds, on every display.</p>
+          <div class="preview bg-dusk" id="preview"><div class="brk"><span class="ghost float" data-ghost="calm"></span><div class="tag">Eye break</div><div class="msg">Look at something 20 feet away.</div><div class="time">0:20</div></div></div>
+          <div class="swatches" role="radiogroup" aria-label="Background"></div>
+          <p class="sw-label" id="swLabel">Dusk</p>
+        </div>
+        <div class="pane" data-p="sound">
+          <h3>Sounds</h3><p>A soft chime when a break starts and when it ends.</p>
+          <div class="group">
+            <div><span>Break starts</span><button class="sound-btn" type="button" data-notes="783.99,659.25"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>Play</button></div>
+            <div><span>Break ends</span><button class="sound-btn" type="button" data-notes="523.25,659.25,783.99"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>Play</button></div>
+          </div>
+        </div>
+        <div class="pane" data-p="msgs">
+          <h3>Messages</h3><p>Shown on the break screen, one at a time.</p>
+          <div class="group msgs">
+            <div>Look at something 20 feet away.</div>
+            <div>Roll your shoulders and unclench your jaw.</div>
+            <div>Stand up, stretch, grab some water.</div>
+            <div style="color:var(--muted)">Call Mom back<span class="caret"></span></div>
+          </div>
+        </div>
+        <div class="pane" data-p="ex">
+          <h3>Exercises</h3><p>The ghost leads. You follow along.</p>
+          <div class="ex-stage bg-honey follow" id="exStage"><span class="ghost" data-ghost="calm" data-lean="0"></span></div>
+          <div class="ex-grid">
+            <button class="ex" type="button" aria-pressed="true" data-ex="follow" data-f="calm"><b>Follow the ghost</b><span>Head still, eyes only.</span></button>
+            <button class="ex" type="button" aria-pressed="false" data-ex="blink" data-f="blink"><b>Slow blinks</b><span>Close gently, hold, open.</span></button>
+            <button class="ex" type="button" aria-pressed="false" data-ex="palm" data-f="closed"><b>Palming</b><span>Warm palms over closed eyes.</span></button>
+            <button class="ex" type="button" aria-pressed="false" data-ex="far" data-f="calm"><b>Look far</b><span>Rest on the farthest thing.</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Mac & Windows ============ -->
+<section class="section compare" id="platforms">
+  <div class="wrap">
+    <p class="eyebrow rv">Mac &amp; Windows</p>
+    <h2 class="sec-title rv">At home on both.</h2>
+    <div class="cols">
+      <div class="col rv">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2-1.1 2.8-2.3.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM14.2 5.8c.6-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>
+        <h3>macOS</h3><p class="sub">Apple silicon</p>
+        <a class="btn" href="https://github.com/iamashwincherian/distant/releases/latest">Download .dmg</a>
+        <div class="spec">
+          <div><small>Lives in</small><span>The menu bar, with a countdown by the clock</span></div>
+          <div><small>Shortcut</small><span><kbd>⌥⇧⌘B</kbd></span></div>
+          <div><small>Holds breaks for</small><span>Calls, microphone use, video, time away</span></div>
+          <div><small>Also</small><span>Every display · Open at login · Light &amp; dark</span></div>
+        </div>
+      </div>
+      <div class="col rv">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8.5v8.5H3zM12.5 3H21v8.5h-8.5zM3 12.5h8.5V21H3zM12.5 12.5H21V21h-8.5z"/></svg>
+        <h3>Windows</h3><p class="sub">Windows 10 and 11</p>
+        <a class="btn" href="https://github.com/iamashwincherian/distant/releases/latest">Download .exe</a>
+        <div class="spec">
+          <div><small>Lives in</small><span>The system tray</span></div>
+          <div><small>Shortcut</small><span><kbd>Ctrl+Alt+Shift+B</kbd></span></div>
+          <div><small>Holds breaks for</small><span>Calls, microphone use, video, games &amp; presentations</span></div>
+          <div><small>Also</small><span>Every display · Open at login · Light &amp; dark</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section faq">
+  <div class="wrap">
+    <div><p class="eyebrow rv">Questions</p><h2 class="sec-title rv">Good to know.</h2></div>
+    <div class="qa rv">
+      <details open><summary>Is Distant really free?</summary><p>Yes. It’s free and open source, and the code is on GitHub.</p></details>
+      <details><summary>Will a break interrupt my call?</summary><p>No. Breaks wait while any app is using your microphone or a video is playing, and on Windows while a fullscreen app is open. A toast tells you when a break is on hold and when it’s back.</p></details>
+      <details><summary>What if I’ve already stepped away?</summary><p>Time away from the keyboard counts as a break, so Distant won’t ask for another one the moment you sit back down.</p></details>
+      <details><summary>Can I turn it off for a while?</summary><p>Pause for 30 minutes, an hour, two hours or until you resume, or skip just the next break. It’s all in the menu bar or tray.</p></details>
+      <details><summary>How often will it ask me to take a break?</summary><p>By default, a 60-second break every 25 minutes and a longer one every few breaks. Every number is yours to change.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Journal ============ -->
+<section class="section journal" id="journal">
+  <div class="wrap">
+    <div class="head"><div><p class="eyebrow rv">Journal</p><h2 class="sec-title rv">Notes on screens<br>and the eyes behind them.</h2></div><a class="link rv" href="#">View all</a></div>
+    <div class="entries">
+      <a class="entry rv" href="#"><small>Sep 30, 2026 · Update</small><div><h3>Distant 1.0: ghost moods and guided eye exercises</h3><p>The ghost now reacts to your day, and leads four short exercises.</p></div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <a class="entry rv" href="#"><small>Sep 30, 2026 · Update</small><div><h3>Smarter breaks that wait for your calls</h3><p>Microphone detection on both macOS and Windows.</p></div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <a class="entry rv" href="#"><small>Guide</small><div><h3>The 20-20-20 rule, explained</h3><p>Where it comes from, and why twenty seconds is enough.</p></div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <a class="entry rv" href="#"><small>Guide</small><div><h3>Set up your desk for less eye strain</h3><p>Distance, height and light, in five minutes.</p></div><span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Final CTA ============ -->
+<section class="final">
+  <div class="wrap">
+    <h2 class="rv">Look up.<br>We’ll keep time.</h2>
+    <p class="rv">Free for Mac and Windows. Set up in a minute, then mostly out of sight.</p>
+    <div class="cta rv"><a class="btn" href="#platforms">Download for Mac</a><a class="btn btn-line" href="#platforms">Download for Windows</a></div>
+  </div>
+  <div class="horizon" aria-hidden="true">
+    <div class="sun"></div>
+    <svg class="h" viewBox="0 0 1440 160" preserveAspectRatio="none">
+      <path d="M0 50 Q300 20 620 44 T1440 36 V160 H0Z" fill="var(--hill-1)"/>
+      <path d="M0 96 Q360 64 760 90 T1440 80 V160 H0Z" fill="var(--hill-2)"/>
+      <path d="M0 132 Q420 110 900 128 T1440 120 V160 H0Z" fill="var(--hill-3)"/>
+    </svg>
+    <div class="ghost float" data-ghost="calm" data-lean="18"></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="cols-f">
+      <div><b>Product</b><a href="#">Download for Mac</a><a href="#">Download for Windows</a><a href="#">Release notes</a></div>
+      <div><b>Learn</b><a href="#">The 20-20-20 rule</a><a href="#">Desk setup</a><a href="#">Blink more</a></div>
+      <div><b>Project</b><a href="#">GitHub</a><a href="#">Report an issue</a></div>
+      <div><b>Distant</b>Healthier screen habits, mostly out of sight. Free and open source.</div>
+    </div>
+    <div class="legal"><span>© 2026 Ashwin Cherian Joseph</span><span>Made for eyes that stare at screens all day.</span></div>
+  </div>
+</footer>
+
+<script>
+// ---------- Ghost (same shapes as the app) ----------
+const E = (y, rx, ry, c = '') => `<g fill="#1d1b16"><ellipse class="${c}" cx="44" cy="${y}" rx="${rx}" ry="${ry}"/><ellipse class="${c}" cx="57" cy="${y}" rx="${rx}" ry="${ry}"/></g>`
+const FACES = {
+  calm: E(34, 3.8, 6), tired: E(36, 3.8, 2.4), sad: E(40, 3.6, 5), blink: E(34, 3.8, 6, 'lid'),
+  happy: '<path d="M40 36 Q44 29 48 36 M53 36 Q57 29 61 36" fill="none" stroke="#1d1b16" stroke-width="3.5" stroke-linecap="round"/>',
+  closed: '<path d="M40 35 H48 M53 35 H61" fill="none" stroke="#1d1b16" stroke-width="4" stroke-linecap="round"/>',
+}
+const LEAN = { calm: 12, happy: 6, tired: 17, sad: 22, blink: 12, closed: 12 }
+const ghost = (f, lean = LEAN[f]) => `<svg viewBox="0 0 100 100"><g class="lean" style="transform:rotate(${lean}deg)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>${FACES[f]}</g></svg>`
+const paint = el => { el.classList.add('ghost'); el.innerHTML = ghost(el.dataset.ghost, el.dataset.lean ?? undefined) }
+document.querySelectorAll('[data-ghost]').forEach(paint)
+
+// ---------- Theme ----------
+document.getElementById('theme').onclick = () => {
+  const r = document.documentElement
+  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+  r.dataset.theme = dark ? 'light' : 'dark'
+}
+
+// ---------- Reveal on scroll ----------
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))), { threshold: .2 })
+document.querySelectorAll('.rv, #chart').forEach(el => io.observe(el))
+
+// ---------- Clocks ----------
+const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
+let k = 0
+setInterval(() => {
+  k++
+  document.getElementById('heroT').textContent = fmt(20 - (k % 21))
+  document.getElementById('brkT').textContent = fmt(60 - (k % 61))
+}, 1000)
+
+// ---------- A day with Distant ----------
+const CLOCK = ['9:00', '10:24', '10:25', '11:00', '12:30', '2:10', '6:00']
+const TRAY = ['25:00', '0:10', 'Break', 'On hold', 'Lunch', '12:08', 'Done']
+const steps = document.querySelectorAll('.step'), layers = document.querySelectorAll('.layer')
+const setStep = i => {
+  steps.forEach(s => s.classList.toggle('on', +s.dataset.i === i))
+  layers.forEach(l => l.classList.toggle('on', +l.dataset.i === i))
+  document.getElementById('clock').textContent = CLOCK[i]
+  document.getElementById('trayT').textContent = TRAY[i]
+  document.getElementById('tray').classList.toggle('hi', i === 0)
+}
+const sio = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && setStep(+e.target.dataset.i)), { rootMargin: '-45% 0px -45% 0px' })
+steps.forEach(s => sio.observe(s))
+setStep(0)
+document.getElementById('bars').innerHTML = [[5, 1], [4, 2], [6, 0], [3, 1], [7, 1], [6, 0], [9, 1]].map(([t, s], i) =>
+  `<div><i class="s" style="height:${s * 10}%"></i><i style="height:${t * 10}%;transition-delay:${i * 60}ms"></i><small>${['F', 'S', 'S', 'M', 'T', 'W', 'T'][i]}</small></div>`).join('')
+
+// ---------- Settings window ----------
+const tabs = document.querySelectorAll('.prefs aside button'), panes = document.querySelectorAll('.pane')
+tabs.forEach(b => b.onclick = () => {
+  tabs.forEach(t => t.setAttribute('aria-selected', t === b))
+  panes.forEach(p => p.classList.toggle('on', p.dataset.p === b.dataset.p))
+})
+document.querySelectorAll('.stepper').forEach(s => {
+  const [dn, out, upb] = s.children, d = s.dataset
+  const set = v => { d.v = Math.min(+d.max, Math.max(+d.min, v)); out.textContent = `${d.v} ${d.u}` }
+  dn.onclick = () => set(+d.v - +d.step); upb.onclick = () => set(+d.v + +d.step)
+})
+const BGS = ['honey', 'daylight', 'dusk', 'ocean', 'forest', 'ember']
+const sw = document.querySelector('.swatches'), preview = document.getElementById('preview')
+sw.innerHTML = BGS.map(b => `<button type="button" role="radio" class="swatch bg-${b}" aria-checked="${b === 'dusk'}" aria-label="${b}" data-b="${b}"></button>`).join('')
+sw.onclick = e => {
+  const b = e.target.closest('.swatch'); if (!b) return
+  sw.querySelectorAll('.swatch').forEach(x => x.setAttribute('aria-checked', x === b))
+  preview.className = `preview bg-${b.dataset.b}`
+  document.getElementById('swLabel').textContent = b.dataset.b
+}
+document.querySelectorAll('.sound-btn').forEach(btn => btn.onclick = () => {
+  const ac = new AudioContext()
+  btn.dataset.notes.split(',').forEach((f, i) => {
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * .16
+    o.frequency.value = +f
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.18, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 1.4)
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 1.5)
+  })
+  btn.classList.add('playing'); setTimeout(() => btn.classList.remove('playing'), 1600)
+})
+const exStage = document.getElementById('exStage'), exGhost = exStage.querySelector('.ghost')
+document.querySelectorAll('.ex').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.ex').forEach(x => x.setAttribute('aria-pressed', x === b))
+  exStage.className = `ex-stage bg-honey ${b.dataset.ex}`
+  exGhost.dataset.ghost = b.dataset.f; paint(exGhost)
+})
+</script>
+</body>
+</html>

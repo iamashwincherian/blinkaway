@@ -1,4 +1,4 @@
-# Distant
+# <img src="build/icon.png" alt="" width="40" align="absmiddle"> Distant
 
 ![Distant landing page](docs/hero.png)
 
