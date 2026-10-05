@@ -226,7 +226,7 @@ function endBreak(skipped) {
 function toast(kind, width, height, msg = '') {
   const wa = screen.getPrimaryDisplay().workArea
   const w = new BrowserWindow({
-    x: wa.x + wa.width - width - 4, y: wa.y + 4, // 12px of the window is shadow room, so the card sits 16px in width, height, frame: false, transparent: true,
+    x: wa.x + wa.width - width - 4, y: wa.y + 4, width, height, frame: false, transparent: true, // 12px of the window is shadow room, so the card sits 16px in
     show: false, hasShadow: false, skipTaskbar: true, resizable: false, alwaysOnTop: true,
     acceptFirstMouse: true, webPreferences: { preload },
   })
