@@ -3,9 +3,9 @@ const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
 
 export const GITHUB = 'https://github.com/iamashwincherian/distant'
 export const DOWNLOAD = 'https://github.com/iamashwincherian/distant/releases/latest'
-const REL = 'https://github.com/iamashwincherian/distant/releases/download/v1.0.0'
-export const DOWNLOAD_MAC = REL + '/Distant-1.0.0-arm64.dmg'
-export const DOWNLOAD_WIN = REL + '/Distant-1.0.0-x64.exe'
+const REL = 'https://github.com/iamashwincherian/distant/releases/download/v1.0.1'
+export const DOWNLOAD_MAC = REL + '/Distant-1.0.1-arm64.dmg'
+export const DOWNLOAD_WIN = REL + '/Distant-1.0.1-x64.exe'
 
 /* ---------- The ghost (same shapes as the app) ---------- */
 const eyes = (y, rx, ry, cls = 'eye') => (

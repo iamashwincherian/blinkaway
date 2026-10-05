@@ -41,7 +41,7 @@ export default function Home() {
         <h1>The break app<br />your eyes thank you for</h1>
         <p className="lede">A smart break reminder for Mac and Windows — eye breaks, blink and posture nudges that quietly take care of your screen habits while you work.</p>
         <DownloadButtons />
-        <p className="meta"><span>v1.0.0</span><span>macOS</span><span>Windows 10 &amp; 11</span><a href={GITHUB}>Open source</a></p>
+        <p className="meta"><span>v1.0.1</span><span>macOS</span><span>Windows 10 &amp; 11</span><a href={GITHUB}>Open source</a></p>
       </section>
       <div className="wrap"><div className="hero-shot reveal"><HeroBreak /></div></div>
 

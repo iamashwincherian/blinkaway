@@ -1,7 +1,7 @@
 {
   "name": "distant",
   "productName": "Distant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Smart break reminders for Mac and Windows",
   "main": "main.js",
   "scripts": {
