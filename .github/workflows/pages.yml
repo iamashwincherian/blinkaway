@@ -1,0 +1,28 @@
+name: Deploy landing to Pages
+on:
+  push:
+    branches: [main]
+    paths: [landing/**]
+  workflow_dispatch:
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: landing/package-lock.json }
+      - run: npm ci && npm run build
+        working-directory: landing
+        env: { BASE_PATH: /blinkaway }
+      # plain <a>/<img> with root-absolute paths aren't basePath-aware; prefix them (skip _next, already prefixed)
+      - run: find landing/out -name '*.html' -exec perl -pi -e 's{(href|src)="/(?!blinkaway/|/)}{$1="/blinkaway/}g' {} +
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: landing/out }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4
