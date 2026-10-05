@@ -1,10 +1,10 @@
 // Stateless pieces shared by server and client components.
 const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
 
-export const DOWNLOAD = 'https://github.com/iamashwincherian/farsight/releases/latest'
-const REL = 'https://github.com/iamashwincherian/farsight/releases/download/v1.0.0'
-export const DOWNLOAD_MAC = REL + '/FarSight-1.0.0-arm64.dmg'
-export const DOWNLOAD_WIN = REL + '/FarSight-1.0.0-x64.exe'
+export const DOWNLOAD = 'https://github.com/iamashwincherian/distant/releases/latest'
+const REL = 'https://github.com/iamashwincherian/distant/releases/download/v1.0.0'
+export const DOWNLOAD_MAC = REL + '/Distant-1.0.0-arm64.dmg'
+export const DOWNLOAD_WIN = REL + '/Distant-1.0.0-x64.exe'
 
 /* ---------- The ghost (same shapes as the app) ---------- */
 const eyes = (y, rx, ry, cls = 'eye') => (
@@ -157,7 +157,7 @@ export function Toast({ face = 'calm', title, sub, ring, bodyClass, buttons }) {
 const MENU = [
   ['Next break in 18:24', '', 'muted'], '-',
   ['Take a Break Now', 'kbd'], ['Take a Long Break'], ['Skip Next Break'], ['Pause', '›'], '-',
-  ['Your Report…'], ['Settings…'], ['Quit Far Sight'],
+  ['Your Report…'], ['Settings…'], ['Quit Distant'],
 ]
 export function TrayMenu({ os }) {
   return (

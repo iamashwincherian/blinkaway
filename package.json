@@ -1,6 +1,6 @@
 {
-  "name": "farsight",
-  "productName": "Far Sight",
+  "name": "distant",
+  "productName": "Distant",
   "version": "1.0.0",
   "description": "Smart break reminders for Mac and Windows",
   "main": "main.js",
@@ -11,8 +11,8 @@
     "predist": "node build/make-lock.js"
   },
   "build": {
-    "artifactName": "FarSight-${version}-${arch}.${ext}",
-    "appId": "com.farsight.app",
+    "artifactName": "Distant-${version}-${arch}.${ext}",
+    "appId": "com.distant.app",
     "files": [
       "*.js",
       "*.html"

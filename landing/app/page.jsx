@@ -35,9 +35,9 @@ export default function Home() {
       {/* Hero */}
       <section className="hero wrap">
         <a className="pill-note" href="#platforms">
-          <b>Far Sight 1.0</b><span className="sep" />Now on Mac and Windows<Icon.arrowR />
+          <b>Distant 1.0</b><span className="sep" />Now on Mac and Windows<Icon.arrowR />
         </a>
-        <div className="app-icon"><img className="float" src="/icon.png" alt="Far Sight app icon" width="110" height="110" /><div className="shadow" /></div>
+        <div className="app-icon"><img className="float" src="/icon.png" alt="Distant app icon" width="110" height="110" /><div className="shadow" /></div>
         <h1>The break app<br />your eyes thank you for</h1>
         <p className="lede">A smart break reminder for Mac and Windows — eye breaks, blink and posture nudges that quietly take care of your screen habits while you work.</p>
         <DownloadButtons />
@@ -56,7 +56,7 @@ export default function Home() {
 
       {/* Flow */}
       <Head id="flow" title="Breaks that don’t break your flow">
-        Far Sight waits for the right moment to show a break,<br className="hide-sm" /> and gives you a heads-up beforehand.
+        Distant waits for the right moment to show a break,<br className="hide-sm" /> and gives you a heads-up beforehand.
       </Head>
       <div className="wrap">
         <div className="reveal"><FlowDemo /></div>
@@ -73,7 +73,7 @@ export default function Home() {
 
       {/* Mac & Windows */}
       <Head id="platforms" title={<>Step away<br />on any desktop</>}>
-        Far Sight is at home on macOS and Windows. Breaks cover every display, and one shortcut starts a break from anywhere.
+        Distant is at home on macOS and Windows. Breaks cover every display, and one shortcut starts a break from anywhere.
       </Head>
       <div className="wrap platforms">
         <figure className="reveal">

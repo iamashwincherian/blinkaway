@@ -264,7 +264,7 @@ function status() {
 }
 
 function render() {
-  tray.setToolTip(`Far Sight — ${status()}`)
+  tray.setToolTip(`Distant — ${status()}`)
   if (isMac) tray.setTitle(s.showTimer && !pausedUntil ? fmt(breakLeft || left) : '', { fontType: 'monospacedDigit' })
 }
 
@@ -282,14 +282,14 @@ function menu() {
     { type: 'separator' },
     { label: 'Your Report…', click: () => openSettings('report') },
     { label: 'Settings…', click: () => openSettings() },
-    { label: 'Quit Far Sight', click: () => app.quit() },
+    { label: 'Quit Distant', click: () => app.quit() },
   ])
 }
 
 function openSettings(tab = 'general') {
   if (settingsWin) return settingsWin.webContents.send('tab', tab), settingsWin.show(), settingsWin.focus()
   settingsWin = new BrowserWindow({
-    width: 780, height: 580, minWidth: 660, minHeight: 440, show: false, title: 'Far Sight',
+    width: 780, height: 580, minWidth: 660, minHeight: 440, show: false, title: 'Distant',
     icon, backgroundColor: '#00000000', webPreferences: { preload },
     ...(isMac && { titleBarStyle: 'hiddenInset', vibrancy: 'sidebar', visualEffectState: 'followWindow' }),
   })

@@ -1,5 +1,5 @@
 {
-  "name": "farsight-landing",
+  "name": "distant-landing",
   "private": true,
   "scripts": {
     "dev": "next dev",
