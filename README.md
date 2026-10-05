@@ -1,5 +1,7 @@
 # Distant
 
+![Distant landing page](docs/hero.png)
+
 A tray/menu-bar break reminder for macOS and Windows, Inspired by LookAway.
 
 - Timed eye breaks (default: 60 s every 25 min), with a long break every few breaks

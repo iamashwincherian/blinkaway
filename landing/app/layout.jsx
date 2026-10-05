@@ -1,5 +1,5 @@
 import './globals.css'
-import { DOWNLOAD, DOWNLOAD_MAC, DOWNLOAD_WIN } from './parts'
+import { DOWNLOAD, DOWNLOAD_MAC, DOWNLOAD_WIN, GITHUB, GitHubLogo } from './parts'
 import { ThemeToggle } from './ui'
 
 export const metadata = {
@@ -25,6 +25,7 @@ export default function RootLayout({ children }) {
             <a href="/#updates">Updates</a>
           </nav>
           <ThemeToggle />
+          <a className="icon-btn" href={GITHUB} aria-label="Distant on GitHub"><GitHubLogo /></a>
           <a className="btn btn-sm" href={DOWNLOAD}>Download</a>
         </header>
         {children}
@@ -32,10 +33,10 @@ export default function RootLayout({ children }) {
           <div className="wrap footer-in">
             <div>
               <a className="logo" href="/"><img src="/icon.png" alt="" width="28" height="28" />Distant</a>
-              <p>Healthier screen habits, on autopilot.<br />© 2026 Ashwin Cherian Joseph</p>
+              <p>Healthier screen habits, on autopilot.<br />Free and open source.<br />© 2026 Ashwin Cherian Joseph</p>
             </div>
             <div className="footer-cols">
-              <div><b>Product</b><a href={DOWNLOAD_MAC}>Download for Mac</a><a href={DOWNLOAD_WIN}>Download for Windows</a><a href="/#updates">What’s new</a><a href="https://github.com/iamashwincherian/distant">GitHub</a></div>
+              <div><b>Product</b><a href={DOWNLOAD_MAC}>Download for Mac</a><a href={DOWNLOAD_WIN}>Download for Windows</a><a href="/#updates">What’s new</a><a href={GITHUB}>GitHub</a></div>
               <div><b>Features</b><a href="/#flow">Smart breaks</a><a href="/#wellness">Blink &amp; posture</a><a href="/#customize">Customize</a><a href="/#platforms">Mac &amp; Windows</a></div>
               <div><b>Resources</b><a href="/posts/20-20-20-rule">The 20-20-20 rule</a><a href="/posts/desk-setup">Desk setup</a><a href="/posts/blink-more">Blink more</a></div>
             </div>

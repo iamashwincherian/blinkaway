@@ -91,7 +91,7 @@ button { font: inherit; color: inherit; }
 .hero h1 { font-size: clamp(36px, 5.4vw, 56px); line-height: 1.08; letter-spacing: -.03em; }
 .lede { max-width: 600px; margin: 20px auto 36px; font-size: 19px; color: var(--muted); }
 .meta { display: flex; gap: 16px; margin-top: 20px; font-size: 13px; color: var(--muted); }
-.meta span + span::before { content: '·'; margin-right: 16px; }
+.meta > * + *::before { content: '·'; margin-right: 16px; }
 .hero > * { animation: rise .8s var(--ease) both; }
 .hero > :nth-child(3) { animation-delay: .1s; } .hero > :nth-child(4) { animation-delay: .16s; }
 .hero > :nth-child(5) { animation-delay: .22s; } .hero > :nth-child(6) { animation-delay: .28s; }
@@ -433,7 +433,7 @@ button { font: inherit; color: inherit; }
 /* ---------- Small screens ---------- */
 @media (max-width: 900px) {
   .header nav { display: none; }
-  .header .icon-btn { margin-left: auto; }
+  .header nav + .icon-btn { margin-left: auto; }
   .features, .grid3, .posts { grid-template-columns: 1fr; }
   .platforms, .wellness, .grid2 { grid-template-columns: 1fr; }
   .report { flex-direction: column; align-items: stretch; }
