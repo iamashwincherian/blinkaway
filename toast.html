@@ -5,35 +5,58 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
 <title>BlinkAway</title>
 <style>
+  :root {
+    color-scheme: light dark;
+    --card: rgba(252, 250, 244, .97); --text: #1d1b16; --muted: #6b665a; --line: rgba(29,27,22,.08);
+    --btn: rgba(29,27,22,.06); --btn-hover: rgba(29,27,22,.11); --track: rgba(29,27,22,.1); --num: #8a6400;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card: rgba(36, 33, 27, .97); --text: #f6f2e6; --muted: #b4ad9b; --line: rgba(255,255,255,.09);
+      --btn: rgba(255,255,255,.08); --btn-hover: rgba(255,255,255,.15); --track: rgba(255,255,255,.1); --num: #ffce3a;
+    }
+  }
   html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
   body {
-    padding: 8px; box-sizing: border-box; cursor: default; user-select: none; color: #f6f2e6;
+    padding: 12px; box-sizing: border-box; cursor: default; user-select: none; color: var(--text);
     font: 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   .card {
-    height: 100%; box-sizing: border-box; padding: 14px 16px; border-radius: 16px;
-    background: rgba(29, 27, 22, .96); border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 4px 6px rgba(0,0,0,.25);
-    animation: in .35s cubic-bezier(.2, .9, .3, 1.2);
+    height: 100%; box-sizing: border-box; padding: 14px; border-radius: 18px;
+    background: var(--card); border: .5px solid var(--line);
+    box-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.08), 0 6px 12px rgba(0,0,0,.1);
+    animation: in .5s cubic-bezier(.2, .9, .25, 1.15) both;
   }
-  @keyframes in { from { opacity: 0; transform: translateY(-10px) scale(.97); } }
-  .row { display: flex; gap: 14px; align-items: center; }
-  b { display: block; font-size: 14px; font-weight: 600; }
-  .num { font-variant-numeric: tabular-nums; color: #ffce3a; }
-  small { display: block; font-size: 12px; color: #bdb6a3; margin-top: 2px; }
+  @keyframes in { from { opacity: 0; transform: translateX(24px) scale(.96); } }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .row > div { min-width: 0; }
+  b { display: block; font-size: 13.5px; font-weight: 600; letter-spacing: -.01em; }
+  .num { font-variant-numeric: tabular-nums; color: var(--num); }
+  small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; text-wrap: pretty; }
   .btns { display: flex; gap: 6px; margin-top: 12px; }
   button {
-    flex: 1; font: inherit; font-size: 12px; font-weight: 500; color: #f6f2e6; padding: 6px 0; border-radius: 8px; cursor: pointer;
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.08);
+    flex: 1; font: inherit; font-size: 12px; font-weight: 500; color: var(--text); height: 28px; border-radius: 999px; cursor: pointer;
+    background: var(--btn); border: 0; transition: background .15s, transform .1s;
   }
-  button:hover { background: rgba(255,255,255,.18); }
-  button.primary { flex: 2; color: #1d1b16; font-weight: 600; background: #ffce3a; border-color: #ffce3a; }
-  button.primary:hover { background: #f5be1f; }
-  svg { flex: none; width: 48px; height: 48px; }
+  button:hover { background: var(--btn-hover); }
+  button:active { transform: scale(.97); }
+  button.primary { flex: 1.6; color: #1d1b16; font-weight: 600; background: #ffce3a; }
+  button.primary:hover { background: #ffd65c; }
+  button:focus-visible { outline: 3px solid rgba(255,206,58,.55); outline-offset: 1px; }
+
+  /* Ghost sits in a soft halo; for the heads-up, a ring drains as the break gets closer */
+  .avatar { position: relative; flex: none; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,206,58,.16); }
+  .avatar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ring { transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 3; }
+  .ring .track { stroke: var(--track); }
+  .ring .fill { stroke: #ffce3a; stroke-linecap: round; stroke-dasharray: 138.2; transition: stroke-dashoffset 1s linear; }
   .lid { transform-box: fill-box; transform-origin: center; animation: blink 2s ease-in-out infinite; }
   @keyframes blink { 0%, 40%, 60%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.1); } }
   .spine { transform-origin: 50px 86px; animation: straighten 2.4s ease-in-out infinite; }
   @keyframes straighten { 0%, 100% { transform: rotate(12deg); } 45%, 75% { transform: rotate(0); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
@@ -55,12 +78,13 @@
   const LEAN = { calm: 12, happy: 6, tired: 17, sad: 22 }
   const ghost = (face, lean = 12, cls = '') =>
     `<svg viewBox="0 0 100 100"><g class="${cls}" transform="rotate(${lean} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>${FACES[face]}</g></svg>`
-  const row = (svg, title) => `<div class="row">${svg}<div><b>${title}</b><small id="sub"></small></div></div>`
+  const RING = '<svg class="ring" viewBox="0 0 48 48"><circle class="track" cx="24" cy="24" r="22"/><circle class="fill" id="ring" cx="24" cy="24" r="22"/></svg>'
+  const row = (svg, title, ring = '') => `<div class="row"><div class="avatar">${ring}${svg}</div><div><b>${title}</b><small id="sub"></small></div></div>`
   const sub = text => { document.getElementById('sub').textContent = text } // messages may carry OS app names
 
   if (kind === 'headsup') {
     const mood = FACES[q.get('mood')] ? q.get('mood') : 'calm'
-    card.innerHTML = row(ghost(mood, LEAN[mood]), 'Break in <span class="num" id="num"></span>') + `
+    card.innerHTML = row(ghost(mood, LEAN[mood]), 'Break in <span class="num" id="num"></span>', RING) + `
       <div class="btns">
         <button class="primary" data-type="start">Start now</button>
         <button data-type="snooze" data-mins="1">+1 min</button>
@@ -68,7 +92,12 @@
         ${q.get('allowSkip') ? '<button data-type="skip">Skip</button>' : ''}
       </div>`
     sub(q.get('msg') || 'Wrap up your thought — time to rest your eyes.') // mood line: guilt or praise
-    const show = t => { document.getElementById('num').textContent = `${t}s` }
+    let total = 0
+    const show = t => {
+      total = Math.max(total, t, 1)
+      document.getElementById('num').textContent = `${t}s`
+      document.getElementById('ring').style.strokeDashoffset = 138.2 * (1 - t / total) // 2πr, r = 22
+    }
     show(+q.get('left'))
     api.on('tick', show)
     card.onclick = e => {

@@ -226,7 +226,7 @@ function endBreak(skipped) {
 function toast(kind, width, height, msg = '') {
   const wa = screen.getPrimaryDisplay().workArea
   const w = new BrowserWindow({
-    x: wa.x + wa.width - width - 8, y: wa.y + 8, width, height, frame: false, transparent: true,
+    x: wa.x + wa.width - width - 4, y: wa.y + 4, // 12px of the window is shadow room, so the card sits 16px in width, height, frame: false, transparent: true,
     show: false, hasShadow: false, skipTaskbar: true, resizable: false, alwaysOnTop: true,
     acceptFirstMouse: true, webPreferences: { preload },
   })
@@ -239,11 +239,11 @@ function toast(kind, width, height, msg = '') {
 
 function showHeadsUp() {
   if (headsUp && !headsUp.isDestroyed()) return
-  headsUp = toast('headsup', 376, 134, moodLine())
+  headsUp = toast('headsup', 384, 142, moodLine())
 }
 
 function nudge(kind, msg) {
-  const w = toast(kind, 316, 104, msg)
+  const w = toast(kind, 324, 112, msg)
   w.setIgnoreMouseEvents(true)
   setTimeout(() => kill(w), 6000)
 }
@@ -291,6 +291,7 @@ function openSettings(tab = 'general') {
   settingsWin = new BrowserWindow({
     width: 780, height: 580, minWidth: 660, minHeight: 440, show: false, title: 'BlinkAway',
     icon, backgroundColor: '#00000000', webPreferences: { preload },
+    ...(isMac && { titleBarStyle: 'hiddenInset', vibrancy: 'sidebar', visualEffectState: 'followWindow' }),
   })
   settingsWin.removeMenu()
   settingsWin.loadFile('settings.html', { hash: tab })
