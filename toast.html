@@ -8,12 +8,12 @@
   :root {
     color-scheme: light dark;
     --card: rgba(252, 250, 244, .97); --text: #1d1b16; --muted: #6b665a; --line: rgba(29,27,22,.08);
-    --btn: rgba(29,27,22,.06); --btn-hover: rgba(29,27,22,.11); --track: rgba(29,27,22,.1); --num: #8a6400;
+    --btn: rgba(29,27,22,.06); --btn-hover: rgba(29,27,22,.11); --num: #8a6400;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --card: rgba(36, 33, 27, .97); --text: #f6f2e6; --muted: #b4ad9b; --line: rgba(255,255,255,.09);
-      --btn: rgba(255,255,255,.08); --btn-hover: rgba(255,255,255,.15); --track: rgba(255,255,255,.1); --num: #ffce3a;
+      --btn: rgba(255,255,255,.08); --btn-hover: rgba(255,255,255,.15); --num: #ffce3a;
     }
   }
   html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
@@ -45,13 +45,9 @@
   button.primary:hover { background: #ffd65c; }
   button:focus-visible { outline: 3px solid rgba(255,206,58,.55); outline-offset: 1px; }
 
-  /* Ghost sits in a soft halo; for the heads-up, a ring drains as the break gets closer */
+  /* Ghost sits in a soft halo */
   .avatar { position: relative; flex: none; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,206,58,.16); }
   .avatar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .ring { transform: rotate(-90deg); }
-  .ring circle { fill: none; stroke-width: 3; }
-  .ring .track { stroke: var(--track); }
-  .ring .fill { stroke: #ffce3a; stroke-linecap: round; stroke-dasharray: 138.2; transition: stroke-dashoffset 1s linear; }
   .lid { transform-box: fill-box; transform-origin: center; animation: blink 2s ease-in-out infinite; }
   @keyframes blink { 0%, 40%, 60%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.1); } }
   .spine { transform-origin: 50px 86px; animation: straighten 2.4s ease-in-out infinite; }
@@ -78,13 +74,12 @@
   const LEAN = { calm: 12, happy: 6, tired: 17, sad: 22 }
   const ghost = (face, lean = 12, cls = '') =>
     `<svg viewBox="0 0 100 100"><g class="${cls}" transform="rotate(${lean} 50 50)"><rect x="31" y="14" width="38" height="72" rx="19" fill="#ffce3a"/>${FACES[face]}</g></svg>`
-  const RING = '<svg class="ring" viewBox="0 0 48 48"><circle class="track" cx="24" cy="24" r="22"/><circle class="fill" id="ring" cx="24" cy="24" r="22"/></svg>'
-  const row = (svg, title, ring = '') => `<div class="row"><div class="avatar">${ring}${svg}</div><div><b>${title}</b><small id="sub"></small></div></div>`
+  const row = (svg, title) => `<div class="row"><div class="avatar">${svg}</div><div><b>${title}</b><small id="sub"></small></div></div>`
   const sub = text => { document.getElementById('sub').textContent = text } // messages may carry OS app names
 
   if (kind === 'headsup') {
     const mood = FACES[q.get('mood')] ? q.get('mood') : 'calm'
-    card.innerHTML = row(ghost(mood, LEAN[mood]), 'Break in <span class="num" id="num"></span>', RING) + `
+    card.innerHTML = row(ghost(mood, LEAN[mood]), 'Break in <span class="num" id="num"></span>') + `
       <div class="btns">
         <button class="primary" data-type="start">Start now</button>
         <button data-type="snooze" data-mins="1">+1 min</button>
@@ -92,12 +87,7 @@
         ${q.get('allowSkip') ? '<button data-type="skip">Skip</button>' : ''}
       </div>`
     sub(q.get('msg') || 'Wrap up your thought — time to rest your eyes.') // mood line: guilt or praise
-    let total = 0
-    const show = t => {
-      total = Math.max(total, t, 1)
-      document.getElementById('num').textContent = `${t}s`
-      document.getElementById('ring').style.strokeDashoffset = 138.2 * (1 - t / total) // 2πr, r = 22
-    }
+    const show = t => { document.getElementById('num').textContent = `${t}s` }
     show(+q.get('left'))
     api.on('tick', show)
     card.onclick = e => {
