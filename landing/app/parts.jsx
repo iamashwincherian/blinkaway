@@ -2,6 +2,9 @@
 const fmt = t => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
 
 export const DOWNLOAD = 'https://github.com/iamashwincherian/blinkaway/releases/latest'
+const REL = 'https://github.com/iamashwincherian/blinkaway/releases/download/v1.0.0'
+export const DOWNLOAD_MAC = REL + '/BlinkAway-1.0.0-arm64.dmg'
+export const DOWNLOAD_WIN = REL + '/BlinkAway-Setup-1.0.0-x64.exe'
 
 /* ---------- The ghost (same shapes as the app) ---------- */
 const eyes = (y, rx, ry, cls = 'eye') => (
@@ -67,8 +70,8 @@ export const Icon = {
 export function DownloadButtons({ small }) {
   return (
     <div className={`downloads${small ? ' small' : ''}`}>
-      <a className="btn" href={DOWNLOAD}><AppleLogo />Download for Mac</a>
-      <a className="btn btn-quiet" href={DOWNLOAD}><WindowsLogo />Download for Windows</a>
+      <a className="btn" href={DOWNLOAD_MAC}><AppleLogo />Download for Mac</a>
+      <a className="btn btn-quiet" href={DOWNLOAD_WIN}><WindowsLogo />Download for Windows</a>
     </div>
   )
 }
