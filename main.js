@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, screen, powerMonitor, ipcMain, globalShortcut } = require('electron')
+const { app, BrowserWindow, Tray, Menu, nativeImage, screen, powerMonitor, ipcMain, globalShortcut, nativeTheme } = require('electron')
 const { execFile, spawn } = require('child_process')
 const fs = require('fs')
 const path = require('path')
@@ -22,6 +22,8 @@ const file = path.join(app.getPath('userData'), 'settings.json')
 const firstRun = !fs.existsSync(file)
 const s = { ...DEFAULTS }
 try { Object.assign(s, JSON.parse(fs.readFileSync(file, 'utf8'))) } catch {}
+if (firstRun) s.background = nativeTheme.shouldUseDarkColors ? 'honey' : 'daylight' // match the system theme on first launch
+if (s.background === 'night') s.background = 'daylight' // Night was replaced by Daylight
 
 // Break history: per-day counts, streaks, and which hours breaks get skipped. Drives the ghost's mood and the report.
 const statsFile = path.join(app.getPath('userData'), 'stats.json')

@@ -106,7 +106,7 @@ button { font: inherit; color: inherit; }
   transition: background .6s var(--ease);
 }
 .bg-honey { background: radial-gradient(ellipse at 50% 40%, #33290f, #17150f 62%); }
-.bg-night { background: linear-gradient(160deg, #050507, #16161d); }
+.bg-daylight { background: linear-gradient(160deg, #fffaf0, #f3e9d2); }
 .bg-dusk { background: linear-gradient(160deg, #0f0c29, #302b63 55%, #6d3a7c); }
 .bg-ocean { background: linear-gradient(160deg, #021b2e, #0b4f6c 55%, #1f8a8a); }
 .bg-forest { background: linear-gradient(160deg, #07170f, #1d4d33 55%, #587a3d); }
@@ -143,6 +143,14 @@ button { font: inherit; color: inherit; }
 .break-actions kbd { font: inherit; opacity: .55; margin-left: .4cqw; }
 .break-time, .break-bar, .break-actions { transition: opacity .4s; }
 .done .break-time, .done .break-bar, .done .break-actions { opacity: 0; }
+/* Daylight is the one light background: text and controls flip dark. A .themed break turns Daylight on the light site theme. */
+.break.bg-daylight, [data-theme=light] .break.themed { background: linear-gradient(160deg, #fffaf0, #f3e9d2); color: #2b2618; --accent: #a87508; }
+:is(.break.bg-daylight, [data-theme=light] .break.themed) .orb { background: radial-gradient(circle, rgba(255, 206, 58, .3), transparent 68%); }
+:is(.break.bg-daylight, [data-theme=light] .break.themed) .shadow { background: rgba(0, 0, 0, .15); }
+:is(.break.bg-daylight, [data-theme=light] .break.themed) .break-bar { background: rgba(0, 0, 0, .08); }
+:is(.break.bg-daylight, [data-theme=light] .break.themed) .break-bar i { background: #e0a812; box-shadow: none; }
+:is(.break.bg-daylight, [data-theme=light] .break.themed) .break-actions span { background: rgba(0, 0, 0, .04); border-color: rgba(0, 0, 0, .12); box-shadow: none; }
+.swatch.bg-daylight span { color: rgba(0, 0, 0, .55); }
 /* Narrow break screens (phones, small cards): scale the content up so it stays readable */
 @container (max-width: 640px) {
   .break-ghost svg { width: 22cqw; height: 22cqw; }

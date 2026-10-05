@@ -86,6 +86,16 @@
   .done .ghost svg { animation: float 2.4s ease-in-out infinite; }
   .done .guilt, .done .time, .done .bar, .done button { opacity: 0; transition: opacity .4s; }
   .preview.done button { opacity: 1; }
+  /* Daylight is the one light background: text and controls flip dark, the accent deepens to stay readable */
+  .light { color: #2b2618; }
+  .light .tag, .light .guilt { color: #a87508; }
+  .light .orb { background: radial-gradient(circle, rgba(255,206,58,.3), transparent 68%); }
+  .light .shadow { background: rgba(0,0,0,.15); }
+  .light .bar { background: rgba(0,0,0,.08); }
+  .light .bar i { background: #e0a812; box-shadow: none; }
+  .light button { color: #2b2618; background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.12); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+  .light button:hover:enabled { background: rgba(0,0,0,.08); }
+  .light button:focus-visible { outline-color: rgba(168,117,8,.6); }
   @media (prefers-reduced-motion: reduce) { main > * { animation: none; } }
 </style>
 </head>
@@ -129,7 +139,7 @@
     ocean: 'linear-gradient(160deg, #021b2e, #0b4f6c 55%, #1f8a8a)',
     forest: 'linear-gradient(160deg, #07170f, #1d4d33 55%, #587a3d)',
     ember: 'linear-gradient(160deg, #1a0b0b, #6b1f2a 55%, #c2593f)',
-    night: 'linear-gradient(160deg, #050507, #16161d)',
+    daylight: 'linear-gradient(160deg, #fffaf0, #f3e9d2)',
   }
   // Guided eye exercises. Other displays just show the plain break.
   const EX = {
@@ -139,6 +149,7 @@
   }
   const ex = primary && EX[d.exercise]
   document.body.style.setProperty('--bg', BG[d.background] || BG.honey)
+  document.body.classList.toggle('light', d.background === 'daylight')
   document.body.dataset.mood = d.mood || 'calm'
   document.body.dataset.face = d.exercise === 'palm' && primary ? 'closed' : d.mood || 'calm'
   if (ex) document.body.classList.add(`ex-${d.exercise}`)

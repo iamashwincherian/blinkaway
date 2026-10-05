@@ -40,7 +40,7 @@ export const POSTS = [
     ],
   },
   {
-    slug: 'desk-setup', kind: 'guide', face: 'happy', bg: 'night',
+    slug: 'desk-setup', kind: 'guide', face: 'happy', bg: 'daylight',
     title: 'Set up your desk for less eye strain',
     summary: 'Screen distance, height, brightness and glare: small changes that add up over a working day.',
     body: [

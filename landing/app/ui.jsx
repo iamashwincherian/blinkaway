@@ -30,7 +30,7 @@ const MESSAGES = ['Look at something 20 feet away.', 'Roll your shoulders and un
 export function HeroBreak() {
   const k = useTick()
   const t = Math.max(0, 12 - (k % 16))
-  return <BreakScreen bg="honey" t={t} total={12} msg={MESSAGES[Math.floor(k / 16) % MESSAGES.length]} className="hero-break" />
+  return <BreakScreen bg="honey" t={t} total={12} msg={MESSAGES[Math.floor(k / 16) % MESSAGES.length]} className="hero-break themed" />
 }
 
 // Heads-up counts down in the corner, then the break fades in over the desktop, then it all starts again.
@@ -100,7 +100,7 @@ export function NotesStack() {
 }
 
 /* ---------- Customisation demos ---------- */
-const BGS = ['honey', 'night', 'dusk', 'ocean', 'forest', 'ember']
+const BGS = ['honey', 'daylight', 'dusk', 'ocean', 'forest', 'ember']
 export function Ambiance() {
   const [bg, setBg] = useState('dusk')
   const k = useTick()
@@ -128,7 +128,7 @@ export function Exercises() {
   const k = useTick(5000)
   const [id, tag, msg] = EXERCISES[k % EXERCISES.length]
   return (
-    <div className={`mini bg-night ex-${id}`}>
+    <div className={`mini bg-honey ex-${id}`}>
       <div className="mini-ghost"><Ghost face={id === 'palm' ? 'closed' : 'calm'} className="float" /></div>
       <div className="break-tag">{tag}</div>
       <p>{msg}</p>
