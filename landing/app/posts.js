@@ -2,11 +2,11 @@
 export const POSTS = [
   {
     slug: 'ghost-moods-and-guided-exercises', kind: 'update', date: 'Sep 30, 2026', face: 'happy', bg: 'dusk',
-    title: 'BlinkAway 1.0 — Ghost moods and guided eye exercises',
+    title: 'Far Sight 1.0 — Ghost moods and guided eye exercises',
     summary: 'The ghost now reacts to how you’re doing, and leads four short exercises during your breaks.',
     body: [
       'Skip a few breaks and the ghost gets tired, then sad. Keep a streak going and it perks right up. You’ll see its mood in the menu bar or tray, on the heads-up, and on the break screen.',
-      'Breaks can now be guided: follow the ghost with your eyes, blink along slowly, palm your eyes, or look far into the distance. BlinkAway rotates through them so no two breaks in a row feel the same.',
+      'Breaks can now be guided: follow the ghost with your eyes, blink along slowly, palm your eyes, or look far into the distance. Far Sight rotates through them so no two breaks in a row feel the same.',
       'There’s also a new Report with today’s breaks, your streaks, a 7-day chart and the hour you tend to skip most.',
     ],
   },
@@ -15,7 +15,7 @@ export const POSTS = [
     title: 'Smarter breaks that wait for your calls',
     summary: 'Breaks hold while you’re on a call or watching video, and you can postpone instead of skipping.',
     body: [
-      'BlinkAway now notices when any app is using your microphone, so it never interrupts a meeting. On macOS it also waits out browser calls and video playback; on Windows, games, fullscreen video and presentations.',
+      'Far Sight now notices when any app is using your microphone, so it never interrupts a meeting. On macOS it also waits out browser calls and video playback; on Windows, games, fullscreen video and presentations.',
       'A short toast tells you when breaks go on hold and when they’re back on.',
       'Not ready? Push a break back by one or five minutes. Skipping is still there, but it unlocks after five seconds so you can’t dismiss a break by reflex.',
     ],

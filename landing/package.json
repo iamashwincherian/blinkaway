@@ -1,5 +1,5 @@
 {
-  "name": "blinkaway-landing",
+  "name": "farsight-landing",
   "private": true,
   "scripts": {
     "dev": "next dev",

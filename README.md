@@ -1,4 +1,4 @@
-# BlinkAway
+# Far Sight
 
 A tray/menu-bar break reminder for macOS and Windows, Inspired by LookAway.
 

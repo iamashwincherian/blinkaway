@@ -1,6 +1,6 @@
 {
-  "name": "blinkaway",
-  "productName": "BlinkAway",
+  "name": "farsight",
+  "productName": "Far Sight",
   "version": "1.0.0",
   "description": "Smart break reminders for Mac and Windows",
   "main": "main.js",
@@ -11,7 +11,8 @@
     "predist": "node build/make-lock.js"
   },
   "build": {
-    "appId": "com.blinkaway.app",
+    "artifactName": "FarSight-${version}-${arch}.${ext}",
+    "appId": "com.farsight.app",
     "files": [
       "*.js",
       "*.html"

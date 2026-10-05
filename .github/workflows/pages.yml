@@ -14,9 +14,9 @@ jobs:
         with: { node-version: 22, cache: npm, cache-dependency-path: landing/package-lock.json }
       - run: npm ci && npm run build
         working-directory: landing
-        env: { BASE_PATH: /blinkaway }
+        env: { BASE_PATH: /farsight }
       # plain <a>/<img> with root-absolute paths aren't basePath-aware; prefix them (skip _next, already prefixed)
-      - run: find landing/out -name '*.html' -exec perl -pi -e 's{(href|src)="/(?!blinkaway/|/)}{$1="/blinkaway/}g' {} +
+      - run: find landing/out -name '*.html' -exec perl -pi -e 's{(href|src)="/(?!farsight/|/)}{$1="/farsight/}g' {} +
       - uses: actions/upload-pages-artifact@v3
         with: { path: landing/out }
   deploy:
